@@ -13,8 +13,6 @@ int test_decompose_homography(int argc, char* argv[]);
 
 int test_Sobel(int argc, char** argv);
 
-void test_create_Node_name();
-
 
 
 
