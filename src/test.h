@@ -13,6 +13,5 @@ int test_decompose_homography(int argc, char* argv[]);
 
 int test_Sobel(int argc, char** argv);
 
-
-
+int test_load_img_from_bytes();
 
