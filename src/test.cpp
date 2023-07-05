@@ -16,6 +16,7 @@ int test_load_img_from_bytes()
 	CV_Assert(lSize % 2 == 0);
 	rewind(pFile);
 	const long pixel_num = lSize / 2;
+	CV_Assert(pixel_num == nImg_height * nImg_width);
 	ushort* pData = new ushort[pixel_num];
 	fread(pData, sizeof(ushort), pixel_num, pFile);
 	fclose(pFile);
