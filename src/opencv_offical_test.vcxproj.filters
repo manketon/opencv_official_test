@@ -39,6 +39,9 @@
     <ClCompile Include="samples\cpp\tutorial_code\core\mat_operations\mat_operations.cpp">
       <Filter>源文件\cpp\tutorial_code\core</Filter>
     </ClCompile>
+    <ClCompile Include="samples\cpp\demhist.cpp">
+      <Filter>源文件\cpp</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="test.h">

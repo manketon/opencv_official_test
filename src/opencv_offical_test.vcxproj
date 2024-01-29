@@ -21,6 +21,7 @@
   <ItemGroup>
     <ClCompile Include="decompose_homography.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="samples\cpp\demhist.cpp" />
     <ClCompile Include="samples\cpp\tutorial_code\core\mat_operations\mat_operations.cpp" />
     <ClCompile Include="Sobel_Demo.cpp" />
     <ClCompile Include="test.cpp" />

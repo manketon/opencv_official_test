@@ -62,22 +62,18 @@ const char* keys =
     "{help h||}{@image|baboon.jpg|input image file}"
 };
 
-int main( int argc, const char** argv )
+int test_demHist(std::string& str_err_reason)
 {
-    CommandLineParser parser(argc, argv, keys);
-    parser.about("\nThis program demonstrates the use of calcHist() -- histogram creation.\n");
-    if (parser.has("help"))
-    {
-        parser.printMessage();
-        return 0;
-    }
-    string inputImage = parser.get<string>(0);
-
+    std::cout << "\nThis program demonstrates the use of calcHist() -- histogram creation." << std::endl;
+    string str_src_img_path;
+    std::cout << "ÇëÊäÈëÔ­Í¼Â·¾¶:";
+    std::cin >> str_src_img_path;
     // Load the source image. HighGUI use.
-    image = imread(samples::findFile(inputImage), IMREAD_GRAYSCALE);
+    //image = imread(samples::findFile(inputImage), IMREAD_GRAYSCALE);
+    image = cv::imread(str_src_img_path, cv::IMREAD_GRAYSCALE);
     if(image.empty())
     {
-        std::cerr << "Cannot read image file: " << inputImage << std::endl;
+        std::cerr << "Cannot read image file: " << str_src_img_path << std::endl;
         return -1;
     }
 
