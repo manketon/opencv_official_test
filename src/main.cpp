@@ -15,6 +15,7 @@ int main(int argc, char* argv[])
 	{
 		std::cout << "0、退出程序" << std::endl;
 		std::cout << "1、演示灰度直方图calcHist" << std::endl;
+		std::cout << "2、测试OpenCV::Parallel_for" << std::endl;
 		std::cout << "请输入您的选择:";
 		int nChoise = -1;
 		std::cin >> nChoise;
@@ -29,6 +30,7 @@ int main(int argc, char* argv[])
 			ret = test_demHist(str_err_reason);
 			break;
 		case 2:
+			ret = test_parallel_for();
 			break;
 		case 3:
 			break;

@@ -18,3 +18,4 @@ int test_load_img_from_bytes();
 //ÑÝÊ¾Ö±·½Í¼
 int test_demHist(std::string& str_err_reason);
 
+int test_parallel_for();

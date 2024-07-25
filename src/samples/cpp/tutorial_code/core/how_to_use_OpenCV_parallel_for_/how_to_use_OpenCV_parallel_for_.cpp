@@ -90,7 +90,7 @@ void sequentialMandelbrot(Mat &img, const float x1, const float y1, const float 
 //! [mandelbrot-sequential]
 }
 
-int main()
+int test_parallel_for()
 {
     //! [mandelbrot-transformation]
     Mat mandelbrotImg(4800, 5400, CV_8U);

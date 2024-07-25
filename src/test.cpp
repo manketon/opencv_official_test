@@ -1,9 +1,4 @@
 #include <opencv2/opencv.hpp>
-int testParallel_for()
-{
-	return 0;
-}
-
 int test_load_img_from_bytes()
 {
 	std::string str_src_img_path = "D:/wafer_images/Si PSL 83nm_SSc/Si PSL 83nm_SSc";
