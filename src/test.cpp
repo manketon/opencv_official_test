@@ -1,4 +1,6 @@
 #include <opencv2/opencv.hpp>
+#include <numeric>
+#include <filesystem>
 int test_load_img_from_bytes()
 {
 	std::string str_src_img_path = "D:/wafer_images/Si PSL 83nm_SSc/Si PSL 83nm_SSc";
@@ -25,5 +27,112 @@ int test_load_img_from_bytes()
 	}
 	delete[] pData;
 	cv::imwrite("D:/wafer_images/Si PSL 83nm_SSc/rslt.png", img);
+	return 0;
+}
+
+struct SInfo
+{
+	SInfo()
+	{
+
+	}
+	double meanV = 0.0;
+	double medianV = 0.0;
+	double stdDevFromMean = 0.0;
+	double stdDevFromMedian = 0.0;
+};
+std::ostream& operator<<(std::ostream& outPutStream, SInfo& info)
+{
+	outPutStream << "meanV:" << info.meanV << ", stdDevFromMean:" << info.stdDevFromMean << ", medianV:" << info.medianV << ", stdDevFromMedian:"
+		<< info.stdDevFromMedian
+		;
+	return outPutStream;
+}
+
+std::string get_channel_name(const std::string& str_img_path)
+{
+	//240625 - 1_650V_33_V1_4N46 - FP02015_25_NUV - PL_IPP.png
+	auto last_index = str_img_path.rfind('_');
+	CV_Assert(last_index != std::string::npos);
+	auto second_index = str_img_path.rfind('_', last_index);
+	CV_Assert(second_index != std::string::npos);
+	--second_index;
+	return str_img_path.substr(second_index, last_index - second_index);
+}
+
+template<class T>
+SInfo get_info(const T* pFirst, const T* pLast)
+{
+	SInfo info;
+	const auto n = pLast - pFirst;
+	CV_Assert(n > 0);
+ 	auto iter_median = pFirst + (n - 1) / 2;
+	info.medianV = *iter_median;
+	info.meanV = std::accumulate(pFirst, pLast, 0.0) / n;
+	for (auto p = pFirst; p < pLast; ++p)
+	{
+		const auto value = *p;
+		info.stdDevFromMean += std::pow(value - info.meanV, 2);
+		info.stdDevFromMedian += std::pow(value - info.medianV, 2);
+	}
+	info.stdDevFromMean = std::sqrt(info.stdDevFromMean / n);
+	info.stdDevFromMedian = std::sqrt(info.stdDevFromMedian / n);
+	return info;
+}
+
+int show_img_info(const cv::Mat& img, const std::string& str_src_img_path, std::string& str_err_reason)
+{
+	std::filesystem::path path_src(str_src_img_path);
+	const size_t imgLength = img.rows * img.cols;
+	const ushort* pSrcImgData = img.ptr<ushort>(0);
+	std::cout << "image:" << path_src.filename().string() << std::endl;
+	for (double cutoff = 0.01; cutoff < 0.5; cutoff += 0.03)
+	{
+		std::vector<ushort> tmp_vec(pSrcImgData, pSrcImgData + imgLength);
+		std::sort(tmp_vec.begin(), tmp_vec.end());
+		auto pFirst = tmp_vec.data() + static_cast<size_t>(imgLength * cutoff);
+		auto pLast = tmp_vec.data() + static_cast<size_t>(imgLength * (1.0 - cutoff)) + 1;
+		auto info = get_info<ushort>(pFirst, pLast);
+		std::cout << "\t\t\t区间[" << cutoff * 100 << "%:" << 100 * (1-cutoff) << "%]的数据分布:" << info << std::endl;
+	}
+	return 0;
+}
+
+int test_imgs_statistical_informations(std::string& str_err_reason)
+{
+	std::string str_src_imgs_dir;
+	std::cout << "请输入原图片目录地址:";
+	std::cin >> str_src_imgs_dir;
+	std::vector<std::string> vec_src_imgs_pathes;
+	cv::glob(str_src_imgs_dir + "/*.png", vec_src_imgs_pathes);
+
+	std::string str_bin_imgs_dir;
+	std::cout << "请输入二值图目录地址:";
+	std::cin >> str_bin_imgs_dir;
+
+	std::map<std::string, std::string> map_srcImgName_binImgName;
+	map_srcImgName_binImgName.insert({"240625-1_650V_33_V1_4N46-FP02015_25_NUV-PL_IPP.png", "4N46-FP02015_NUV-PL_Defect_Binary_SD5.png"});
+	map_srcImgName_binImgName.insert({"240625-1_650V_33_V1_4N46-FP02015_25_QScO_IPP.png", "4N46-FP02015_QScO_Defect_Binary_SD2.png"});
+	map_srcImgName_binImgName.insert({ "240625-1_650V_33_V1_4N46-FP02015_25_QZrO_IPP.png", "4N46-FP02015_QZrO_Defect_Binary_SD3.png" });
+	map_srcImgName_binImgName.insert({ "240625-1_650V_33_V1_4N46-FP02015_25_ScN_IPP.png", "4N46-FP02015_ScN_Defect_Binary_SD1.png" });
+	map_srcImgName_binImgName.insert({ "240625-1_650V_33_V1_4N46-FP02015_25_VIS-PL_IPP.png", "4N46-FP02015_VIS-PL_Defect_Binary_SD4.png" });
+	for (const auto& str_src_img_path : vec_src_imgs_pathes)
+	{
+		const cv::Mat srcImg = cv::imread(str_src_img_path, cv::IMREAD_UNCHANGED);
+		CV_Assert(srcImg.empty() == false);
+		CV_Assert(srcImg.type() == CV_16UC1);
+		int ret = show_img_info(srcImg, str_src_img_path, str_err_reason);
+		if (ret)
+		{
+			std::cout << __FUNCTION__ << " | error, ret:" << ret << ", img path:" << str_src_img_path << std::endl;
+			return ret;
+		}
+		auto iter = map_srcImgName_binImgName.find(std::filesystem::path(str_src_img_path).filename().string());
+		CV_Assert(iter != map_srcImgName_binImgName.end());
+		auto str_bin_img_path = str_bin_imgs_dir + "/" + iter->second;
+		cv::Mat binImg = cv::imread(str_bin_img_path, cv::IMREAD_UNCHANGED);
+		CV_Assert(binImg.empty() == false);
+		binImg = binImg > 0;
+	}
 	return 0;
 }

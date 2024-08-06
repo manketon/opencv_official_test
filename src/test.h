@@ -19,3 +19,5 @@ int test_load_img_from_bytes();
 int test_demHist(std::string& str_err_reason);
 
 int test_parallel_for();
+
+int test_imgs_statistical_informations(std::string& str_err_reason);
