@@ -82,19 +82,31 @@ SInfo get_info(const T* pFirst, const T* pLast)
 
 int show_img_info(const cv::Mat& img, const std::string& str_src_img_path, std::string& str_err_reason)
 {
+	const int roi_height = 1000;
 	std::filesystem::path path_src(str_src_img_path);
-	const size_t imgLength = img.rows * img.cols;
-	const ushort* pSrcImgData = img.ptr<ushort>(0);
+	cv::Rect roi(0, 0, img.cols, roi_height);
 	std::cout << "image:" << path_src.filename().string() << std::endl;
-	for (double cutoff = 0.01; cutoff < 0.5; cutoff += 0.03)
+	for (roi.y = 300; roi.y < img.rows; roi.y += roi.height)
 	{
-		std::vector<ushort> tmp_vec(pSrcImgData, pSrcImgData + imgLength);
-		std::sort(tmp_vec.begin(), tmp_vec.end());
-		auto pFirst = tmp_vec.data() + static_cast<size_t>(imgLength * cutoff);
-		auto pLast = tmp_vec.data() + static_cast<size_t>(imgLength * (1.0 - cutoff)) + 1;
-		auto info = get_info<ushort>(pFirst, pLast);
-		std::cout << "\t\t\t区间[" << cutoff * 100 << "%:" << 100 * (1-cutoff) << "%]的数据分布:" << info << std::endl;
+		if (roi.y + roi.height - 1 >= img.rows)
+		{
+			roi.height = img.rows - roi.y;
+		}
+		std::cout << "\t行区间[" << roi.y << ":" << roi.y + roi.height << "]" << std::endl;
+		cv::Mat subImg(img, roi);
+		const size_t imgLength = subImg.rows * subImg.cols;
+		const ushort* pSrcImgData = subImg.ptr<ushort>(0);
+		for (double cutoff = 0.01; cutoff < 0.5; cutoff += 0.03)
+		{
+			std::vector<ushort> tmp_vec(pSrcImgData, pSrcImgData + imgLength);
+			std::sort(tmp_vec.begin(), tmp_vec.end());
+			auto pFirst = tmp_vec.data() + static_cast<size_t>(imgLength * cutoff);
+			auto pLast = tmp_vec.data() + static_cast<size_t>(imgLength * (1.0 - cutoff)) + 1;
+			auto info = get_info<ushort>(pFirst, pLast);
+			std::cout << "\t\t区间[" << cutoff * 100 << "%:" << 100 * (1 - cutoff) << "%]的数据分布:" << info << std::endl;
+		}
 	}
+	
 	return 0;
 }
 
