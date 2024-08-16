@@ -118,16 +118,16 @@ int test_imgs_statistical_informations(std::string& str_err_reason)
 	std::vector<std::string> vec_src_imgs_pathes;
 	cv::glob(str_src_imgs_dir + "/*.png", vec_src_imgs_pathes);
 
-	std::string str_bin_imgs_dir;
-	std::cout << "请输入二值图目录地址:";
-	std::cin >> str_bin_imgs_dir;
+// 	std::string str_bin_imgs_dir;
+// 	std::cout << "请输入二值图目录地址:";
+// 	std::cin >> str_bin_imgs_dir;
 
-	std::map<std::string, std::string> map_srcImgName_binImgName;
-	map_srcImgName_binImgName.insert({"240625-1_650V_33_V1_4N46-FP02015_25_NUV-PL_IPP.png", "4N46-FP02015_NUV-PL_Defect_Binary_SD5.png"});
-	map_srcImgName_binImgName.insert({"240625-1_650V_33_V1_4N46-FP02015_25_QScO_IPP.png", "4N46-FP02015_QScO_Defect_Binary_SD2.png"});
-	map_srcImgName_binImgName.insert({ "240625-1_650V_33_V1_4N46-FP02015_25_QZrO_IPP.png", "4N46-FP02015_QZrO_Defect_Binary_SD3.png" });
-	map_srcImgName_binImgName.insert({ "240625-1_650V_33_V1_4N46-FP02015_25_ScN_IPP.png", "4N46-FP02015_ScN_Defect_Binary_SD1.png" });
-	map_srcImgName_binImgName.insert({ "240625-1_650V_33_V1_4N46-FP02015_25_VIS-PL_IPP.png", "4N46-FP02015_VIS-PL_Defect_Binary_SD4.png" });
+// 	std::map<std::string, std::string> map_srcImgName_binImgName;
+// 	map_srcImgName_binImgName.insert({"240625-1_650V_33_V1_4N46-FP02015_25_NUV-PL_IPP.png", "4N46-FP02015_NUV-PL_Defect_Binary_SD5.png"});
+// 	map_srcImgName_binImgName.insert({"240625-1_650V_33_V1_4N46-FP02015_25_QScO_IPP.png", "4N46-FP02015_QScO_Defect_Binary_SD2.png"});
+// 	map_srcImgName_binImgName.insert({ "240625-1_650V_33_V1_4N46-FP02015_25_QZrO_IPP.png", "4N46-FP02015_QZrO_Defect_Binary_SD3.png" });
+// 	map_srcImgName_binImgName.insert({ "240625-1_650V_33_V1_4N46-FP02015_25_ScN_IPP.png", "4N46-FP02015_ScN_Defect_Binary_SD1.png" });
+// 	map_srcImgName_binImgName.insert({ "240625-1_650V_33_V1_4N46-FP02015_25_VIS-PL_IPP.png", "4N46-FP02015_VIS-PL_Defect_Binary_SD4.png" });
 	for (const auto& str_src_img_path : vec_src_imgs_pathes)
 	{
 		const cv::Mat srcImg = cv::imread(str_src_img_path, cv::IMREAD_UNCHANGED);
@@ -139,12 +139,12 @@ int test_imgs_statistical_informations(std::string& str_err_reason)
 			std::cout << __FUNCTION__ << " | error, ret:" << ret << ", img path:" << str_src_img_path << std::endl;
 			return ret;
 		}
-		auto iter = map_srcImgName_binImgName.find(std::filesystem::path(str_src_img_path).filename().string());
-		CV_Assert(iter != map_srcImgName_binImgName.end());
-		auto str_bin_img_path = str_bin_imgs_dir + "/" + iter->second;
-		cv::Mat binImg = cv::imread(str_bin_img_path, cv::IMREAD_UNCHANGED);
-		CV_Assert(binImg.empty() == false);
-		binImg = binImg > 0;
+// 		auto iter = map_srcImgName_binImgName.find(std::filesystem::path(str_src_img_path).filename().string());
+// 		CV_Assert(iter != map_srcImgName_binImgName.end());
+// 		auto str_bin_img_path = str_bin_imgs_dir + "/" + iter->second;
+// 		cv::Mat binImg = cv::imread(str_bin_img_path, cv::IMREAD_UNCHANGED);
+// 		CV_Assert(binImg.empty() == false);
+// 		binImg = binImg > 0;
 	}
 	return 0;
 }
