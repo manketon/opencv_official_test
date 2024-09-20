@@ -148,3 +148,41 @@ int test_imgs_statistical_informations(std::string& str_err_reason)
 	}
 	return 0;
 }
+cv::Mat towRows2oneRow(const cv::Mat& src)
+{
+	int nDstWidth = src.cols * 2;
+	int nDstHeight = src.rows / 2;
+	cv::Mat dst(nDstHeight, nDstWidth, src.type());
+	for (int i = 0; i < nDstHeight; ++i)
+	{
+		cv::Rect leftROI(0, i, src.cols, 1);
+		cv::Mat leftSubImg(dst, leftROI);
+		src.row(2 * i).copyTo(leftSubImg);
+		cv::Rect rightROI = leftROI;
+		rightROI.x = src.cols;
+		cv::Mat rightSubImg(dst, rightROI);
+		src.row(2 * i + 1).copyTo(rightSubImg);
+	}
+	return dst;
+}
+int test_towRows2oneRow(std::string& str_err_reason)
+{
+	std::string str_src_imgs_dir;
+	std::cout << "ÇëÊäÈëÔ­Í¼Æ¬Ä¿Â¼µØÖ·:";
+	std::cin >> str_src_imgs_dir;
+	std::vector<std::string> vec_src_imgs_pathes;
+	cv::glob(str_src_imgs_dir + "/*.png", vec_src_imgs_pathes);
+	std::string str_dst_imgs_dir;
+	std::cout << "ÇëÊäÈë´æ´¢Ä¿Â¼µØÖ·:";
+	std::cin >> str_dst_imgs_dir;
+	for (const auto& str_src_img_path : vec_src_imgs_pathes)
+	{
+		const cv::Mat srcImg = cv::imread(str_src_img_path, cv::IMREAD_UNCHANGED);
+		CV_Assert(srcImg.empty() == false);
+		CV_Assert(srcImg.type() == CV_16UC1);
+		cv::Mat dstImg = towRows2oneRow(srcImg);
+		std::string str_dst_img_path = str_dst_imgs_dir + "/" + std::filesystem::path(str_src_img_path).filename().string();
+		CV_Assert(cv::imwrite(str_dst_img_path, dstImg));
+	}
+	return 0;
+}
