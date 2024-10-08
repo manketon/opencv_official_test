@@ -177,10 +177,22 @@ int test_towRows2oneRow(std::string& str_err_reason)
 	std::cin >> str_dst_imgs_dir;
 	for (const auto& str_src_img_path : vec_src_imgs_pathes)
 	{
+		if (str_src_img_path.find("SC") == std::string::npos)
+		{
+			continue;
+		}
 		const cv::Mat srcImg = cv::imread(str_src_img_path, cv::IMREAD_UNCHANGED);
 		CV_Assert(srcImg.empty() == false);
 		CV_Assert(srcImg.type() == CV_16UC1);
 		cv::Mat dstImg = towRows2oneRow(srcImg);
+		//if (dstImg.rows == 500)
+		//{
+		//	cv::copyMakeBorder(dstImg, dstImg, 0, 1, 0, 0, cv::BORDER_DEFAULT);
+		//}
+		//else if (dstImg.rows == 502)
+		//{
+		//	dstImg = cv::Mat(dstImg, cv::Rect(0, 0, dstImg.cols, 501));
+		//}
 		std::string str_dst_img_path = str_dst_imgs_dir + "/" + std::filesystem::path(str_src_img_path).filename().string();
 		CV_Assert(cv::imwrite(str_dst_img_path, dstImg));
 	}
