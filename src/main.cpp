@@ -2,6 +2,7 @@
 #include "test.h"
 #include <json/json.h>
 #include <iostream>
+#include "test_cpp.h"
 int main(int argc, char* argv[])
 {
 	int ret = -1;
@@ -18,7 +19,8 @@ int main(int argc, char* argv[])
 		std::cout << "2、测试OpenCV::Parallel_for" << std::endl;
 		std::cout << "3、统计图片在多种百分位情况下的标准差" << std::endl;
 		std::cout << "4、将原图片中的两行合并为一行" << std::endl;
-		std::cout << "请输入您的选择:";
+		std::cout << "5、测试自定义Allocate来初始化std::vector" << std::endl;
+		std::cout << "请输入您的选择:"; 
 		int nChoise = -1;
 		std::cin >> nChoise;
 		int ret = -1;
@@ -41,6 +43,7 @@ int main(int argc, char* argv[])
 			ret = test_towRows2oneRow(str_err_reason);
 			break;
 		case 5:
+			ret = test_CustomAllocator(str_err_reason);
 			break;
 		case 6:
 			break;

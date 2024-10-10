@@ -45,12 +45,18 @@
     <ClCompile Include="samples\cpp\tutorial_code\core\how_to_use_OpenCV_parallel_for_\how_to_use_OpenCV_parallel_for_.cpp">
       <Filter>源文件\cpp\tutorial_code\core</Filter>
     </ClCompile>
+    <ClCompile Include="test_cpp.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="test.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="convolution.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="test_cpp.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

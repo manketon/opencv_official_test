@@ -26,10 +26,12 @@
     <ClCompile Include="samples\cpp\tutorial_code\core\mat_operations\mat_operations.cpp" />
     <ClCompile Include="Sobel_Demo.cpp" />
     <ClCompile Include="test.cpp" />
+    <ClCompile Include="test_cpp.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="convolution.h" />
     <ClInclude Include="test.h" />
+    <ClInclude Include="test_cpp.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
