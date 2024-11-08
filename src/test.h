@@ -23,3 +23,5 @@ int test_parallel_for();
 int test_imgs_statistical_informations(std::string& str_err_reason);
 
 int test_towRows2oneRow(std::string& str_err_reason);
+
+int test_minAreaRect(std::string& str_err_reason);
