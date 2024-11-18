@@ -199,10 +199,20 @@ int test_towRows2oneRow(std::string& str_err_reason)
 	return 0;
 }
 
+
+
 int test_minAreaRect(std::string& str_err_reason)
 {
 	std::vector<cv::Point> pnts{ cv::Point(2, 2), cv::Point(3, 3)/*, cv::Point(4, 5), cv::Point(5, 6), cv::Point(5, 5)*/ };
 	auto rect = cv::minAreaRect(pnts);
-	std::cout << __FUNCTION__ << " | rect" << rect.size << ", "  << rect.angle << ", " << rect.center << std::endl;
+	std::cout << __FUNCTION__ << " | size:" << rect.size << ", angle:"  << rect.angle << ", center:" << rect.center << std::endl;
+	std::vector<cv::Point2f> corner_pnts(4);
+	rect.points(corner_pnts.data());
+	for (auto& corner_pnt : corner_pnts)
+	{
+		std::cout << "corner_pnt:" << corner_pnt << ", ";
+	}
+	std::cout << std::endl;
 	return 0;
 }
+
