@@ -272,9 +272,9 @@ int test_HoughLines(std::string& str_err_reason)
 	std::cout << "请输入源二值图路径:";
 	std::cin >> str_src_bin_path;
 	cv::Mat srcBin = cv::imread(str_src_bin_path, cv::IMREAD_UNCHANGED);
-	CV_Assert(srcBin.empty() == false);
+	CV_Assert(srcBin.empty() == false && srcBin.type() == CV_8UC1);
 	std::filesystem::path path_src(str_src_bin_path);
-	//霍夫变换
+	//霍夫变换（注意：霍夫变换可能会改变源二值图）
 	vector<Vec2f> lines;
 	HoughLines(srcBin,	//输入图
 		lines,			//线条结果
@@ -284,10 +284,7 @@ int test_HoughLines(std::string& str_err_reason)
 		0,				//srn默认为0
 		0);				//stn默认为0
 
-	Mat dst, dstP;
-	cvtColor(srcBin, dst, COLOR_GRAY2BGR);	//转变回BGR图片
-	dstP = dst.clone();
-
+	Mat dst(srcBin.size(), CV_8UC1, cv::Scalar::all(0));
 	//显示检测到的线条为红色
 	for (size_t i{ 0 }; i < lines.size(); i++) {
 		float rho{ lines[i][0] }, theta{ lines[i][1] };		//分别获取rho和theta值
@@ -299,9 +296,17 @@ int test_HoughLines(std::string& str_err_reason)
 		pt1.y = cvRound(y0 + 1000 * (a));
 		pt2.x = cvRound(x0 - 1000 * (-b));
 		pt2.y = cvRound(y0 - 1000 * (a));
-		line(dst, pt1, pt2, Scalar(0, 0, 255), 3, LINE_AA);
+		line(dst, pt1, pt2, Scalar::all(255), 3, LINE_8/*LINE_AA*/);
+	}
+	{
+		std::vector<cv::Mat> vec_channels{ srcBin, dst, srcBin };
+		cv::Mat result;
+		cv::merge(vec_channels, result);
+		std::string str_dst_path = std::string(RESULT_IMAGES_DIR) + "/" + path_src.stem().string() + "_houghLines.png";
+		CV_Assert(cv::imwrite(str_dst_path, result));
 	}
 
+	cv::Mat dstP(srcBin.size(), CV_8UC1, cv::Scalar::all(0));
 	//概率霍夫变换
 	vector<Vec4i> linesP;
 	HoughLinesP(srcBin,	//输入图
@@ -314,11 +319,15 @@ int test_HoughLines(std::string& str_err_reason)
 	//显示结果线条
 	for (size_t i{ 0 }; i < linesP.size(); i++) {
 		Vec4i l{ linesP[i] };
-		line(dstP, Point(l[0], l[1]), Point(l[2], l[3]), Scalar(0, 0, 255), 3, LINE_AA);
+		line(dstP, Point(l[0], l[1]), Point(l[2], l[3]), Scalar::all(255), 1, LINE_8);
 	}
-	std::string str_dst_path = std::string(RESULT_IMAGES_DIR) + "/"+ path_src.stem().string() + "_houghLines.png";
-	CV_Assert(cv::imwrite(str_dst_path, dst));
-	std::string str_dstP_path = std::string(RESULT_IMAGES_DIR) + "/" + path_src.stem().string() + "_houghLinesP.png";
-	CV_Assert(cv::imwrite(str_dstP_path, dstP));
+
+	{
+		std::vector<cv::Mat> vec_channels{ srcBin, dstP, srcBin };
+		cv::Mat rsult_P;
+		cv::merge(vec_channels, rsult_P);
+		std::string str_dstP_path = std::string(RESULT_IMAGES_DIR) + "/" + path_src.stem().string() + "_houghLinesP.png";
+		CV_Assert(cv::imwrite(str_dstP_path, rsult_P));
+	}
 	return 0;
 }
