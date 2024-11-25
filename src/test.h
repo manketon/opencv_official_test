@@ -6,6 +6,10 @@
  * @date   October 2022
  *********************************************************************/
 #pragma once
+#include <string>
+#ifndef DEBUG_IMGS_DIR
+#define RESULT_IMAGES_DIR ("./result_imgs/")
+#endif // DEBUG_IMGS_DIR
 /**
  * @brief  
  */
@@ -25,3 +29,7 @@ int test_imgs_statistical_informations(std::string& str_err_reason);
 int test_towRows2oneRow(std::string& str_err_reason);
 
 int test_minAreaRect(std::string& str_err_reason);
+
+int test_convexhull(std::string& str_err_reason);
+
+int test_HoughLines(std::string& str_err_reason);

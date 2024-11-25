@@ -1,6 +1,10 @@
 #include <opencv2/opencv.hpp>
 #include <numeric>
 #include <filesystem>
+#include <vector>
+#include "test.h"
+using namespace cv;
+using namespace std;
 int test_load_img_from_bytes()
 {
 	std::string str_src_img_path = "D:/wafer_images/Si PSL 83nm_SSc/Si PSL 83nm_SSc";
@@ -216,3 +220,105 @@ int test_minAreaRect(std::string& str_err_reason)
 	return 0;
 }
 
+int test_convexhull(std::string& str_err_reason)
+{
+	std::string str_src_bin_path = "../test_imgs/polarBin.png";
+	std::cout << "请输入源二值图路径:";
+	std::cin >> str_src_bin_path;
+	cv::Mat srcBin = cv::imread(str_src_bin_path, cv::IMREAD_UNCHANGED);
+	CV_Assert(srcBin.empty() == false);
+	std::vector<std::vector<cv::Point>> contours;
+	cv::findContours(srcBin, contours, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
+	std::vector<std::vector<int>> hull(contours.size());
+	for (int i = 0; i < contours.size(); i++)
+	{
+		convexHull(contours[i], hull[i], false);
+	}
+
+	std::vector<std::vector<cv::Vec4i>> defects(contours.size()); 
+	for (int i = 0; i < contours.size(); i++) {
+		if (hull[i].size() > 3) {
+			convexityDefects(contours[i], hull[i], defects[i]);
+		}
+	}
+	cv::Mat show_rslt;
+	cv::cvtColor(srcBin, show_rslt, cv::COLOR_GRAY2BGR);
+	for (int i = 0; i < contours.size(); i++) {
+		for (int j = 0; j < defects[i].size(); j++) {
+			cv::Vec4i& v = defects[i][j];
+			float depth = v[3] / 256.0;
+			if (depth > 10) {
+				int startidx = v[0];
+				cv::Point start(contours[i][startidx]);
+				int endidx = v[1];
+				cv::Point end(contours[i][endidx]);
+				int faridx = v[2];
+				cv::Point far(contours[i][faridx]);
+				cv::line(show_rslt, start, end, cv::Scalar(0, 0, 255), 2);
+				cv::line(show_rslt, start, far, cv::Scalar(0, 255, 0), 2);
+				cv::line(show_rslt, end, far, cv::Scalar(0, 255, 0), 2);
+				cv::circle(show_rslt, far, 4, cv::Scalar(0, 255, 0), -1);
+			}
+		}
+	}
+	std::string str_dst_img_path = std::string(RESULT_IMAGES_DIR) + "/bin_with_convexHull.png";
+	CV_Assert(cv::imwrite(str_dst_img_path, show_rslt));
+	return 0;
+}
+
+int test_HoughLines(std::string& str_err_reason)
+{
+	std::string str_src_bin_path = "../test_imgs/polarBin.png";
+	std::cout << "请输入源二值图路径:";
+	std::cin >> str_src_bin_path;
+	cv::Mat srcBin = cv::imread(str_src_bin_path, cv::IMREAD_UNCHANGED);
+	CV_Assert(srcBin.empty() == false);
+	std::filesystem::path path_src(str_src_bin_path);
+	//霍夫变换
+	vector<Vec2f> lines;
+	HoughLines(srcBin,	//输入图
+		lines,			//线条结果
+		1,				//rho = 1
+		CV_PI / 180,	//theta = 1弧度制
+		150,			//votes阈值
+		0,				//srn默认为0
+		0);				//stn默认为0
+
+	Mat dst, dstP;
+	cvtColor(srcBin, dst, COLOR_GRAY2BGR);	//转变回BGR图片
+	dstP = dst.clone();
+
+	//显示检测到的线条为红色
+	for (size_t i{ 0 }; i < lines.size(); i++) {
+		float rho{ lines[i][0] }, theta{ lines[i][1] };		//分别获取rho和theta值
+		Point pt1, pt2;
+		double a{ cos(theta) }, b{ sin(theta) };
+		double x0 = a * rho, y0 = b * rho;					//通过rho和theta计算极坐标向量的端点
+		//计算直线上两点的坐标
+		pt1.x = cvRound(x0 + 1000 * (-b));
+		pt1.y = cvRound(y0 + 1000 * (a));
+		pt2.x = cvRound(x0 - 1000 * (-b));
+		pt2.y = cvRound(y0 - 1000 * (a));
+		line(dst, pt1, pt2, Scalar(0, 0, 255), 3, LINE_AA);
+	}
+
+	//概率霍夫变换
+	vector<Vec4i> linesP;
+	HoughLinesP(srcBin,	//输入图
+		linesP,			//线条结果
+		1,				//rho = 1
+		CV_PI / 180,	//theta = 1弧度制	
+		50,				//votes阈值
+		50,				//直线最短长度
+		20);			//直线最大间隔
+	//显示结果线条
+	for (size_t i{ 0 }; i < linesP.size(); i++) {
+		Vec4i l{ linesP[i] };
+		line(dstP, Point(l[0], l[1]), Point(l[2], l[3]), Scalar(0, 0, 255), 3, LINE_AA);
+	}
+	std::string str_dst_path = std::string(RESULT_IMAGES_DIR) + "/"+ path_src.stem().string() + "_houghLines.png";
+	CV_Assert(cv::imwrite(str_dst_path, dst));
+	std::string str_dstP_path = std::string(RESULT_IMAGES_DIR) + "/" + path_src.stem().string() + "_houghLinesP.png";
+	CV_Assert(cv::imwrite(str_dstP_path, dstP));
+	return 0;
+}

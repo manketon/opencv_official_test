@@ -2,16 +2,15 @@
 #include "test.h"
 #include <json/json.h>
 #include <iostream>
+#include <filesystem>
 #include "test_cpp.h"
 int main(int argc, char* argv[])
 {
 	int ret = -1;
-	//Json::Value jv1, jv2;
-	//std::cout << std::boolalpha << (jv1 == jv2) << std::endl;
-	//ret = test_decompose_homography(argc, argv);
-	//ret = test_Sobel(argc, argv);
-	//ret = test_load_img_from_bytes();
-	
+	if (!std::filesystem::exists(RESULT_IMAGES_DIR))
+	{
+		std::filesystem::create_directories(RESULT_IMAGES_DIR);
+	}
 	while (true)
 	{
 		std::cout << "0、退出程序" << std::endl;
@@ -21,6 +20,8 @@ int main(int argc, char* argv[])
 		std::cout << "4、将原图片中的两行合并为一行" << std::endl;
 		std::cout << "5、测试自定义Allocate来初始化std::vector" << std::endl;
 		std::cout << "6、测试minAreaRect" << std::endl;
+		std::cout << "7、测试凸包：查找区域的凸点" << std::endl;
+		std::cout << "8、测试霍夫直线变换" << std::endl;
 		std::cout << "请输入您的选择:"; 
 		int nChoise = -1;
 		std::cin >> nChoise;
@@ -50,8 +51,10 @@ int main(int argc, char* argv[])
 			ret = test_minAreaRect(str_err_reason);
 			break;
 		case 7:
+			ret = test_convexhull(str_err_reason);
 			break;
 		case 8:
+			ret = test_HoughLines(str_err_reason);
 			break;
 		default:
 			std::cout << "非法输入" << std::endl;
