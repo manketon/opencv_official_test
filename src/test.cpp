@@ -5,6 +5,36 @@
 #include "test.h"
 using namespace cv;
 using namespace std;
+
+inline cv::Point2d area_center(const std::vector<cv::Point>& pnts)
+{
+	CV_Assert(pnts.empty() == false);
+	size_t sumX = 0, sumY = 0;
+	for (size_t i = 0; i < pnts.size(); ++i)
+	{
+		sumX += pnts[i].x;
+		sumY += pnts[i].y;
+	}
+	cv::Point2d centroid;
+	centroid.x = sumX * 1.0 / pnts.size();
+	centroid.y = sumY * 1.0 / pnts.size();
+	return centroid;
+}
+//中心矩
+double my_center_momnet(const std::vector<cv::Point>& pnts, const int i, const int j)
+{
+	if (pnts.empty())
+	{
+		return 0.0;
+	}
+	const cv::Point2d centroid = area_center(pnts);
+	double m = 0;
+	for (const auto& pnt : pnts)
+	{
+		m += std::pow(centroid.y - pnt.y, i) * std::pow(centroid.x - pnt.x, j);
+	}
+	return m;
+}
 int test_load_img_from_bytes()
 {
 	std::string str_src_img_path = "D:/wafer_images/Si PSL 83nm_SSc/Si PSL 83nm_SSc";
@@ -500,36 +530,65 @@ void calc_moment_1(cv::InputArray _src)
 	double length_a = sqrt(2 * (mu20 + mu02 + sqrt((mu20 - mu02) * (mu20 - mu02) + 4 * mu11 * mu11))); //halcon中为8
 	double length_b = sqrt(2 * (mu20 + mu02 - sqrt((mu20 - mu02) * (mu20 - mu02) + 4 * mu11 * mu11))); //halcon中为8
 }
+
+void moments_region_2nd(const std::vector<cv::Point>& region, double& M11, double& M20, double& M02, double& Ia, double& Ib)
+{
+	M20 = my_center_momnet(region, 2, 0);
+	M11 = my_center_momnet(region, 1, 1);
+	M02 = my_center_momnet(region, 0, 2);
+	const auto h = (M20 + M02) / 2;
+	const auto delta = std::sqrt(h * h - M20 * M02 + M11 * M11);
+	Ia = h + delta;
+	Ib = h - delta;
+}
+
+void elliptic_axis(const std::vector<cv::Point>& region, double& Ra, double& Rb, double& Phi)
+{
+	if (region.size() <= 1)
+	{
+		Ra = Rb = Phi = 0;
+		return;
+	}
+	double M11 = 0.0, M20 = 0.0, M02 = 0.0, Ia = 0.0, Ib = 0.0;
+	moments_region_2nd(region, M11, M20, M02, Ia, Ib);
+	const auto cof = region.size();
+	//归一化
+	M11 /= cof;
+	M20 /= cof;
+	M02 /= cof;
+	//将归一化所得结果带入Halcon的elliptic_axis算子的公式，所得结果与elliptic_axis的结果一致
+	Phi = -0.5 * atan2(2 * M11, M02 - M20);
+	auto M20_add_M02 = M20 + M02;
+	auto delta = std::sqrt((M20 - M02) * (M20 - M02) + 4 * M11 * M11);
+	Ra = std::sqrt(8 * (M20_add_M02 + delta)) / 2;
+	Rb = std::sqrt(8 * (M20_add_M02 - delta)) / 2;
+}
+int test_elliptic_axis(std::string& str_err_reason)
+{
+	std::string str_src_bin_path = "D:/DevelopMent/LibLSR20_Optimized/testImg/only_one_region/one_region.png";
+	std::cout << "请输入二值图路径:";
+	std::cin >> str_src_bin_path;
+	cv::Mat srcBin = cv::imread(str_src_bin_path, cv::IMREAD_UNCHANGED);
+	CV_Assert(srcBin.empty() == false && srcBin.type() == CV_8UC1);
+
+	std::vector<cv::Point> region;
+	cv::findNonZero(srcBin, region);
+	double Ra = 0.0, Rb = 0.0, theta = 0.0;
+	elliptic_axis(region, Ra, Rb, theta);
+	std::cout << "Ra=" << Ra << std::endl;
+	std::cout << "Rb=" << Rb << std::endl;
+	std::cout << "theta=" << theta << std::endl;
+	return 0;
+}
 int test_moment(std::string& str_err_reason)
 {
-	{
-		//下面的这些值来自于Halcon的moments_region_2nd
-		const int Area = 1193; //区域的像素点数
-		auto M11 = 654849.5;
-		auto M20 = 467847.4;
-		auto M02 = 953479.5;
-		const auto cof = Area;
-		//归一化
-		M11 /= cof;
-		M20 /= cof;
-		M02 /= cof;
-		//将归一化所得结果带入Halcon的elliptic_axis算子的公式，所得结果与elliptic_axis的结果一致
-		double theta = -0.5 * atan2(2 * M11, M02 - M20);
-		std::cout << "theta=" << theta << std::endl;
-		auto M20_M02_DS = (M20 - M02) * (M20 - M02);
-		auto fourM11_S = 4 * M11 * M11;
-		auto M20_add_M02 = M20 + M02;
-		auto Ra = std::sqrt(8 * (M20_add_M02 + std::sqrt(M20_M02_DS + fourM11_S))) / 2;
-		auto Rb = std::sqrt(8 * (M20_add_M02 - std::sqrt(M20_M02_DS + fourM11_S))) / 2;
-		std::cout << "Ra=" << Ra << std::endl;
-		std::cout << "Rb=" << Rb << std::endl;
-	}
 	std::string str_src_bin_path = "D:/DevelopMent/LibLSR20_Optimized/testImg/only_one_region/one_region.png";
 // 	std::cout << "请输入二值图路径:";
 // 	std::cin >> str_src_bin_path;
 	cv::Mat srcBin = cv::imread(str_src_bin_path, cv::IMREAD_UNCHANGED);
 	CV_Assert(srcBin.empty() == false && srcBin.type() == CV_8UC1);
 	calc_moment_1(srcBin);
+
 	// 查找轮廓  
 	vector<vector<Point>> contours;
 	vector<Vec4i> hierarchy;

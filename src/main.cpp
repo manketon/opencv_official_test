@@ -24,6 +24,7 @@ int main(int argc, char* argv[])
 		std::cout << "8、测试霍夫直线变换" << std::endl;
 		std::cout << "9、寻找两幅中差异点的坐标" << std::endl;
 		std::cout << "10、计算连通区域的矩" << std::endl;
+		std::cout << "11、elliptic_axis:计算连通区域的长短轴以及角度" << std::endl;
 		std::cout << "请输入您的选择:"; 
 		int nChoise = -1;
 		std::cin >> nChoise;
@@ -63,6 +64,9 @@ int main(int argc, char* argv[])
 			break;
 		case 10:
 			ret = test_moment(str_err_reason);
+			break;
+		case 11:
+			ret = test_elliptic_axis(str_err_reason);
 			break;
 		default:
 			std::cout << "非法输入" << std::endl;
