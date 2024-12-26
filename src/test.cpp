@@ -331,3 +331,212 @@ int test_HoughLines(std::string& str_err_reason)
 	}
 	return 0;
 }
+
+template <class T>
+void find_different_pnts_impl(const cv::Mat& m1, const cv::Mat& m2)
+{
+	CV_Assert_4(m1.empty() == false, m2.empty() == false, m1.type() == m2.type(), m1.size == m2.size);
+	for (int i = 0; i < m1.rows; ++i)
+	{
+		auto pM1_row = m1.ptr<T>(i);
+		auto pM2_row = m2.ptr<T>(i);
+		for (int j = 0; j < m1.cols; ++j)
+		{
+			if (pM1_row[j] != pM2_row[j])
+			{
+				std::cout << __FUNCTION__ << " | Not same pnt.x:" << j << ", pnt.y:" << i << std::endl;
+			}
+		}
+	}
+}
+void find_different_pnts(const cv::Mat& m1, const cv::Mat& m2)
+{
+	const auto type = m1.type();
+	switch (type)
+	{
+	case CV_8UC1:
+		find_different_pnts_impl<uchar>(m1, m2);
+		break;
+	case CV_8UC3:
+		find_different_pnts_impl<cv::Vec3b>(m1, m2);
+		break;
+	case CV_16UC1:
+		find_different_pnts_impl<ushort>(m1, m2);
+		break;
+	default:
+		std::cout << __FUNCTION__ << " | Not support type:" << cv::typeToString(type) << std::endl;
+		CV_Assert(false);
+	}
+}
+int test_find_different_pnts(std::string& str_err_reason)
+{
+	std::string str_first_img_path;
+	std::cout << "请输入第一幅图路径:";
+	std::cin >> str_first_img_path;
+	std::string str_second_img_path;
+	std::cout << "请输入第二幅图路径:";
+	std::cin >> str_second_img_path;
+	cv::Mat firstImg = cv::imread(str_first_img_path, cv::IMREAD_UNCHANGED);
+	cv::Mat secondImg = cv::imread(str_second_img_path, cv::IMREAD_UNCHANGED);
+	find_different_pnts(firstImg, secondImg);
+	return 0;
+}
+
+// void calculateOrientationBasedPCA(const std::vector<cv::Point>& contour) {
+// 	if (contour.size() < 5) return; // fitEllipse需要至少5个点  
+// 
+// 	// 使用PCA计算主方向  
+// 	cv::PCA pca(contour, cv::Mat(), cv::PCA::DATA_AS_ROW);
+// 	cv::Vec2f direction = pca.eigenvectors.at<float>(0); // 主成分方向  
+// 
+// 	// 计算角度
+// 	float angle = atan2(direction[1], direction[0]) * 180.0 / CV_PI; // 将弧度转换为度  
+// 	std::cout << "Principal Direction Angle: " << angle << std::endl;
+// 
+// 	// 可视化方向 (可选)  
+// 	cv::Point2f mean(pca.mean.at<double>(0), pca.mean.at<double>(1));
+// 	cv::Point2f endpoint(mean.x + direction[0] * 50, mean.y + direction[1] * 50);
+// 	// 在图像上绘制  
+// 	cv::Mat output;
+// 	cv::cvtColor(inputImage, output, cv::COLOR_GRAY2BGR);
+// 	cv::line(output, mean, endpoint, cv::Scalar(255, 0, 0), 2);
+// 	cv::circle(output, mean, 5, cv::Scalar(0, 255, 0), -1);
+// }
+
+
+void calculateOrientationUsingPCA(const std::vector<cv::Point>& contour) {
+	// 将轮廓点转为Mat格式，并转换为浮点数  
+	cv::Mat data(contour.size(), 2, CV_32FC1);
+	for (int i = 0; i < contour.size(); ++i)
+	{
+		auto pSrc_row = data.ptr<float>(i);
+		pSrc_row[0] = contour[i].x;
+		pSrc_row[1] = contour[i].y;
+	}
+
+	// 计算PCA  
+	cv::PCA pca(data, cv::Mat(), cv::PCA::DATA_AS_ROW);
+
+	// 主成分方向  
+	cv::Vec2f eigenvector = pca.eigenvectors.at<cv::Vec2f>(0);
+
+	// 计算主方向的角度  
+	double angle = std::atan2(eigenvector[1], eigenvector[0]) * 180.0 / CV_PI;
+
+	// 轮廓中心  
+	cv::Point2f center(pca.mean.at<double>(0), pca.mean.at<double>(1));
+
+	std::cout << "中心: (" << center.x << ", " << center.y << "), 方向: " << angle << " degrees" << std::endl;
+}
+
+//基于轮廓矩来计算轮廓方向
+void calculateOrientationBasedMoments(const std::vector<cv::Point>& contour) {
+	// 计算轮廓的矩  
+	cv::Moments m = cv::moments(contour, false);
+
+	double cx = m.m10 / m.m00; // 轮廓的中心 x 坐标  
+	double cy = m.m01 / m.m00; // 轮廓的中心 y 坐标  
+
+	double mu20 = m.mu20; // 二阶矩  
+	double mu11 = m.mu11; // 混合矩  
+	double mu02 = m.mu02; // 二次矩  
+
+	// 计算方向角  
+	double theta = 0.5 * atan2(2 * mu11, mu20 - mu02); //atan2的返回值范围:(-PI, PI]
+
+	// 方向以度为单位  
+	double angle = theta * 180.0 / CV_PI;
+
+	std::cout << "中心: (" << cx << ", " << cy << "), 方向: " << angle << " degrees" << std::endl;
+}
+
+int test_calc_direction_based_(std::string& str_err_reason)
+{
+	std::string str_src_bin_path;
+	std::cout << "请输入二值图路径:";
+	std::cin >> str_src_bin_path;
+	cv::Mat srcBin = cv::imread(str_src_bin_path, cv::IMREAD_UNCHANGED);
+	CV_Assert(srcBin.empty() == false && srcBin.type() == CV_8UC1);
+	// 查找轮廓  
+	std::vector<std::vector<cv::Point>> contours;
+	cv::findContours(srcBin, contours, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
+
+	// 遍历每个轮廓，计算并输出方向  
+	for (const auto& contour : contours) {
+		calculateOrientationBasedMoments(contour);
+	}
+	return 0;
+}
+
+void calc_moment_2(const std::vector<cv::Point>& contour)
+{
+	const auto m = cv::moments(contour, false);
+	double area = m.m00; // 轮廓的面积
+	 // 计算质心  
+	Point2d center(m.m10 / area, m.m01 / area);
+
+	// 计算主轴  
+	double mu20 = m.m20 / area; // 归一化的矩  
+	double mu02 = m.m02 / area; // 归一化的矩  
+	double mu11 = m.m11 / area; // 归一化的矩  
+
+	// 计算特征值  
+	double nu20 = mu20 / (area * area);
+	double nu02 = mu02 / (area * area);
+	double nu11 = mu11 / (area * area);
+	double area2 = cv::contourArea(contour);
+}
+
+void calc_moment_1(cv::InputArray _src)
+{
+	const auto m = cv::moments(_src, true);
+	// 计算二阶矩  
+	double mu20 = m.mu20;
+	double mu11 = m.mu11;
+	double mu02 = m.mu02;
+	//TODO::目前长短轴和halcon::elliptic_axis还是有差别的，后面复现halcon::moments_region_2nd
+	// 计算主方向和特征值  
+	double theta = -0.5 * atan2(2 * mu11, mu20 - mu02);
+	double length_a = sqrt(2 * (mu20 + mu02 + sqrt((mu20 - mu02) * (mu20 - mu02) + 4 * mu11 * mu11))); //halcon中为8
+	double length_b = sqrt(2 * (mu20 + mu02 - sqrt((mu20 - mu02) * (mu20 - mu02) + 4 * mu11 * mu11))); //halcon中为8
+}
+int test_moment(std::string& str_err_reason)
+{
+	{
+		//下面的这些值来自于Halcon的moments_region_2nd
+		const int Area = 1193; //区域的像素点数
+		auto M11 = 654849.5;
+		auto M20 = 467847.4;
+		auto M02 = 953479.5;
+		const auto cof = Area;
+		//归一化
+		M11 /= cof;
+		M20 /= cof;
+		M02 /= cof;
+		//将归一化所得结果带入Halcon的elliptic_axis算子的公式，所得结果与elliptic_axis的结果一致
+		double theta = -0.5 * atan2(2 * M11, M02 - M20);
+		std::cout << "theta=" << theta << std::endl;
+		auto M20_M02_DS = (M20 - M02) * (M20 - M02);
+		auto fourM11_S = 4 * M11 * M11;
+		auto M20_add_M02 = M20 + M02;
+		auto Ra = std::sqrt(8 * (M20_add_M02 + std::sqrt(M20_M02_DS + fourM11_S))) / 2;
+		auto Rb = std::sqrt(8 * (M20_add_M02 - std::sqrt(M20_M02_DS + fourM11_S))) / 2;
+		std::cout << "Ra=" << Ra << std::endl;
+		std::cout << "Rb=" << Rb << std::endl;
+	}
+	std::string str_src_bin_path = "D:/DevelopMent/LibLSR20_Optimized/testImg/only_one_region/one_region.png";
+// 	std::cout << "请输入二值图路径:";
+// 	std::cin >> str_src_bin_path;
+	cv::Mat srcBin = cv::imread(str_src_bin_path, cv::IMREAD_UNCHANGED);
+	CV_Assert(srcBin.empty() == false && srcBin.type() == CV_8UC1);
+	calc_moment_1(srcBin);
+	// 查找轮廓  
+	vector<vector<Point>> contours;
+	vector<Vec4i> hierarchy;
+	findContours(srcBin, contours, hierarchy, RETR_EXTERNAL, CHAIN_APPROX_SIMPLE);
+	for (size_t i = 0; i < contours.size(); i++)
+	{
+		calc_moment_2(contours[i]);
+	}
+	return 0;
+}

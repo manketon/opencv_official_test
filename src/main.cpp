@@ -22,6 +22,8 @@ int main(int argc, char* argv[])
 		std::cout << "6、测试minAreaRect" << std::endl;
 		std::cout << "7、测试凸包：查找区域的凸点" << std::endl;
 		std::cout << "8、测试霍夫直线变换" << std::endl;
+		std::cout << "9、寻找两幅中差异点的坐标" << std::endl;
+		std::cout << "10、计算连通区域的矩" << std::endl;
 		std::cout << "请输入您的选择:"; 
 		int nChoise = -1;
 		std::cin >> nChoise;
@@ -55,6 +57,12 @@ int main(int argc, char* argv[])
 			break;
 		case 8:
 			ret = test_HoughLines(str_err_reason);
+			break;
+		case 9:
+			ret = test_find_different_pnts(str_err_reason);
+			break;
+		case 10:
+			ret = test_moment(str_err_reason);
 			break;
 		default:
 			std::cout << "非法输入" << std::endl;

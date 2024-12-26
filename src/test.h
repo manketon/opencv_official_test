@@ -33,3 +33,7 @@ int test_minAreaRect(std::string& str_err_reason);
 int test_convexhull(std::string& str_err_reason);
 
 int test_HoughLines(std::string& str_err_reason);
+//寻找两幅图中不一样的像素点坐标
+int test_find_different_pnts(std::string& str_err_reason);
+
+int test_moment(std::string& str_err_reason);
