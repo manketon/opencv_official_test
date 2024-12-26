@@ -20,14 +20,14 @@ inline cv::Point2d area_center(const std::vector<cv::Point>& pnts)
 	centroid.y = sumY * 1.0 / pnts.size();
 	return centroid;
 }
+
 //中心矩
-double my_center_momnet(const std::vector<cv::Point>& pnts, const int i, const int j)
+double my_center_momnet(const std::vector<cv::Point>& pnts, const cv::Point2d& centroid, const int i, const int j)
 {
 	if (pnts.empty())
 	{
 		return 0.0;
 	}
-	const cv::Point2d centroid = area_center(pnts);
 	double m = 0;
 	for (const auto& pnt : pnts)
 	{
@@ -35,6 +35,7 @@ double my_center_momnet(const std::vector<cv::Point>& pnts, const int i, const i
 	}
 	return m;
 }
+
 int test_load_img_from_bytes()
 {
 	std::string str_src_img_path = "D:/wafer_images/Si PSL 83nm_SSc/Si PSL 83nm_SSc";
@@ -533,9 +534,14 @@ void calc_moment_1(cv::InputArray _src)
 
 void moments_region_2nd(const std::vector<cv::Point>& region, double& M11, double& M20, double& M02, double& Ia, double& Ib)
 {
-	M20 = my_center_momnet(region, 2, 0);
-	M11 = my_center_momnet(region, 1, 1);
-	M02 = my_center_momnet(region, 0, 2);
+	if (region.empty())
+	{
+		M11 = M20 = M02 = Ia = Ib = 0;
+	}
+	const cv::Point2d centroid = area_center(region);
+	M20 = my_center_momnet(region, centroid, 2, 0);
+	M11 = my_center_momnet(region, centroid, 1, 1);
+	M02 = my_center_momnet(region, centroid, 0, 2);
 	const auto h = (M20 + M02) / 2;
 	const auto delta = std::sqrt(h * h - M20 * M02 + M11 * M11);
 	Ia = h + delta;
@@ -546,7 +552,7 @@ void elliptic_axis(const std::vector<cv::Point>& region, double& Ra, double& Rb,
 {
 	if (region.size() <= 1)
 	{
-		Ra = Rb = Phi = 0;
+		Ra = Rb = Phi = 0.0;
 		return;
 	}
 	double M11 = 0.0, M20 = 0.0, M02 = 0.0, Ia = 0.0, Ib = 0.0;
@@ -563,6 +569,59 @@ void elliptic_axis(const std::vector<cv::Point>& region, double& Ra, double& Rb,
 	Ra = std::sqrt(8 * (M20_add_M02 + delta)) / 2;
 	Rb = std::sqrt(8 * (M20_add_M02 - delta)) / 2;
 }
+
+void elliptic_axis_using_covMat(const std::vector<cv::Point>& region, double& Ra, double& Rb, double& Phi)
+{
+	if (region.size() <= 1)
+	{
+		Ra = Rb = Phi = 0.0;
+		return;
+	}
+	const cv::Point2d centroid = area_center(region);
+	// 构造协方差矩阵
+	Mat covMat = Mat::zeros(2, 2, CV_64F);
+	for (const auto& pt : region)
+	{
+		auto dx = static_cast<double>(pt.x) - centroid.x;
+		auto dy = static_cast<double>(pt.y) - centroid.y;
+		covMat.at<double>(0, 0) += dy * dy; //M20
+		covMat.at<double>(0, 1) += dx * dy; //M11
+		covMat.at<double>(1, 0) += dx * dy;
+		covMat.at<double>(1, 1) += dx * dx; //M02
+	}//所得矩阵与halcon::moments_region_2nd是一致的
+
+	covMat /= region.size(); //归一化
+	// 计算协方差矩阵的特征值和特征向量
+	Point2f uv[2];
+	Mat eigenVals, eigenVectors;
+	cv::eigen(covMat, eigenVals, eigenVectors);
+	uv[0] = Point2f(eigenVectors.at<double>(0, 0), eigenVectors.at<double>(0, 1));
+	uv[1] = Point2f(eigenVectors.at<double>(1, 0), eigenVectors.at<double>(1, 1));
+	//auto angleMinorAxis = atan2(uv[0].y, uv[0].x); //atan2的取值范围为(-PI, PI]
+	//if (angleMinorAxis > CV_PI/2)
+	//{
+	//	angleMinorAxis -= CV_PI;
+	//}
+	//else if (angleMinorAxis < -CV_PI/2)
+	//{
+	//	angleMinorAxis += CV_PI;
+	//}
+	Phi = atan2(uv[1].y, uv[1].x); //atan2的取值范围为(-PI, PI]
+	if (Phi > CV_PI/2)
+	{
+		Phi -= CV_PI;
+	}
+	else if (Phi < -CV_PI/2)
+	{
+		Phi += CV_PI;
+	}
+	//特征值为根为长短半轴的1/2
+	double a = sqrt(eigenVals.at<double>(0, 0));
+	double b = sqrt(eigenVals.at<double>(1, 0));
+	Ra = max(a, b) * 2; //长半轴
+	Rb = min(a, b) * 2; //短半轴
+}
+
 int test_elliptic_axis(std::string& str_err_reason)
 {
 	std::string str_src_bin_path = "D:/DevelopMent/LibLSR20_Optimized/testImg/only_one_region/one_region.png";
@@ -575,11 +634,19 @@ int test_elliptic_axis(std::string& str_err_reason)
 	cv::findNonZero(srcBin, region);
 	double Ra = 0.0, Rb = 0.0, theta = 0.0;
 	elliptic_axis(region, Ra, Rb, theta);
+	std::cout << "elliptic_axis result:" << std::endl;
+	std::cout << "Ra=" << Ra << std::endl;
+	std::cout << "Rb=" << Rb << std::endl;
+	std::cout << "theta=" << theta << std::endl;
+	Ra = 0.0, Rb = 0.0, theta = 0.0;
+	elliptic_axis_using_covMat (region, Ra, Rb, theta);
+	std::cout << "elliptic_axis_using_covMat result:" << std::endl;
 	std::cout << "Ra=" << Ra << std::endl;
 	std::cout << "Rb=" << Rb << std::endl;
 	std::cout << "theta=" << theta << std::endl;
 	return 0;
 }
+
 int test_moment(std::string& str_err_reason)
 {
 	std::string str_src_bin_path = "D:/DevelopMent/LibLSR20_Optimized/testImg/only_one_region/one_region.png";
