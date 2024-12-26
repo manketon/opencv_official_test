@@ -38,3 +38,5 @@ int test_find_different_pnts(std::string& str_err_reason);
 
 int test_moment(std::string& str_err_reason);
 int test_elliptic_axis(std::string& str_err_reason);
+
+int test_calcCovarMatrix(std::string& str_err_reason);

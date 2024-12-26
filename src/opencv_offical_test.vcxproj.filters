@@ -48,6 +48,9 @@
     <ClCompile Include="test_cpp.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="samples\cpp\test_calcCovarMatrix.cpp">
+      <Filter>源文件\cpp</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="test.h">
@@ -58,6 +61,9 @@
     </ClInclude>
     <ClInclude Include="test_cpp.h">
       <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="samples\cpp\common.h">
+      <Filter>源文件\cpp</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

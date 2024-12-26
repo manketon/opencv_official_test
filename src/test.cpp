@@ -588,7 +588,9 @@ int test_moment(std::string& str_err_reason)
 	cv::Mat srcBin = cv::imread(str_src_bin_path, cv::IMREAD_UNCHANGED);
 	CV_Assert(srcBin.empty() == false && srcBin.type() == CV_8UC1);
 	calc_moment_1(srcBin);
-
+	std::vector<cv::Point> region;
+	cv::findNonZero(srcBin, region);
+	calc_moment_2(region);
 	// ≤È’“¬÷¿™  
 	vector<vector<Point>> contours;
 	vector<Vec4i> hierarchy;
