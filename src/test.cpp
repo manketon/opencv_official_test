@@ -3,24 +3,9 @@
 #include <filesystem>
 #include <vector>
 #include "test.h"
+#include "samples/cpp/common.h"
 using namespace cv;
 using namespace std;
-
-inline cv::Point2d area_center(const std::vector<cv::Point>& pnts)
-{
-	CV_Assert(pnts.empty() == false);
-	size_t sumX = 0, sumY = 0;
-	for (size_t i = 0; i < pnts.size(); ++i)
-	{
-		sumX += pnts[i].x;
-		sumY += pnts[i].y;
-	}
-	cv::Point2d centroid;
-	centroid.x = sumX * 1.0 / pnts.size();
-	centroid.y = sumY * 1.0 / pnts.size();
-	return centroid;
-}
-
 //ÖÐÐÄ¾Ø
 double my_center_momnet(const std::vector<cv::Point>& pnts, const cv::Point2d& centroid, const int i, const int j)
 {

@@ -22,6 +22,7 @@
     <ClCompile Include="decompose_homography.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="samples\cpp\demhist.cpp" />
+    <ClCompile Include="samples\cpp\skeletonize.cpp" />
     <ClCompile Include="samples\cpp\test_calcCovarMatrix.cpp" />
     <ClCompile Include="samples\cpp\tutorial_code\core\how_to_use_OpenCV_parallel_for_\how_to_use_OpenCV_parallel_for_.cpp" />
     <ClCompile Include="samples\cpp\tutorial_code\core\mat_operations\mat_operations.cpp" />
