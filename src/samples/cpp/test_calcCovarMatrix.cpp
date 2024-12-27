@@ -77,24 +77,27 @@ int test_calcCovarMatrix(std::string& str_err_reason)
 			mat.at<float>(y, x) = vec.at(y).at(x);
 		}
 	}
-	//std::cout << mat << std::endl;
-
-	//std::cout << "mat:" << std::endl << mat << std::endl;
-	//cv::Mat means(1, mat.cols, mat.type(), cv::Scalar::all(0));
-	//for (int i = 0; i < mat.cols; i++)
-	//	means.col(i) = (cv::sum(mat.col(i)) / mat.rows).val[0];
-	//std::cout << "means:" << std::endl << means << std::endl;
-	//cv::Mat tmp = cv::repeat(means, mat.rows, 1);
-	//cv::Mat mat2 = mat - tmp;
-	//cv::Mat covar = (mat2.t()*mat2) / (mat2.rows /*- 1*/); // （X'*X)/n-1
-	//std::cout << "covar:" << std::endl << covar << std::endl;
 
 	cv::Mat covar2, mean2;
-	cv::calcCovarMatrix(mat, covar2, mean2, cv::COVAR_NORMAL | cv::COVAR_ROWS/* | CV_COVAR_SCALE*/, CV_32FC1);
+	//启用cv::COVAR_SCALE，则相当于结果再除以nsamples
+	cv::calcCovarMatrix(mat, covar2, mean2, cv::COVAR_NORMAL | cv::COVAR_ROWS /*| cv::COVAR_SCALE*/, CV_32FC1); 
 	fprintf(stderr, "print covariance matrix: \n");
 	print_matrix(covar2);
 	fprintf(stderr, "print mean: \n");
 	print_matrix(mean2);
 
+	{
+		//(Mat_<float>(2, 3) << 1, 2, 3, 10, 20, 30);
+		fprintf(stderr, "\nc++ other calculate covariance matrix:\n");
+		cv::Mat data = mat.clone();
+		cv::Mat means(1, data.cols, data.type(), cv::Scalar::all(0));
+		for (int i = 0; i < data.cols; i++)
+			means.col(i) = sum(data.col(i)) / data.rows;  //计算列均值
+		std::cout << "+++++means:" << std::endl << means << std::endl;
+		cv::Mat tmp = cv::repeat(means, data.rows, 1);
+		data = data - tmp;    //源数据减去均值
+		cv::Mat covar = (data.t() * data) /*/ (data.rows)*/;   // （X'*X)/n，启用后与cv::COVAR_SCALE等价，matlab中为:（X'*X)/（n-1）
+		std::cout << "+++++covar:" << std::endl << covar << std::endl;
+	}
 	return 0;
 }
