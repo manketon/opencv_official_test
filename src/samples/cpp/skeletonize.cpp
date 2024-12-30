@@ -1,6 +1,7 @@
 #include <opencv2/opencv.hpp>  
 #include <opencv2/imgproc.hpp>  
 #include <opencv2/highgui.hpp>  
+#include <opencv2/ximgproc.hpp>
 #include <filesystem>
 #include <iostream>
 using namespace cv;
@@ -273,6 +274,12 @@ void test_4(const cv::Mat& srcBin, cv::Mat& dst)
 {
 	skeletonization4(srcBin, dst);
 }
+//与test_4的结果是完全一样的
+void test_5(const cv::Mat& srcBin, cv::Mat& dst)
+{
+	cv::ximgproc::thinning(srcBin, dst, cv::ximgproc::THINNING_ZHANGSUEN);
+}
+
 int test_skeleton(std::string& str_err_reason) 
 {
 	std::string str_src_bin_path = "D:/DevelopMent/LibLSR20_Optimized/testImg/only_one_region/one_region.png";
@@ -284,7 +291,7 @@ int test_skeleton(std::string& str_err_reason)
 	{
 		Mat dst;
 		int Algo = 0;
-		std::cout << "请输入所用算法(1至4，0为退出):";
+		std::cout << "请输入所用算法(1至6，0为退出):";
 		std::cin >> Algo;
 		switch (Algo)
 		{
@@ -302,6 +309,9 @@ int test_skeleton(std::string& str_err_reason)
 			break;
 		case 4:
 			test_4(srcBin, dst);
+			break;
+		case 5:
+			test_5(srcBin, dst);
 			break;
 		default:
 			break;
