@@ -27,6 +27,7 @@ int main(int argc, char* argv[])
 		std::cout << "11、elliptic_axis:计算连通区域的长短轴以及角度" << std::endl;
 		std::cout << "12、计算协方差矩阵" << std::endl;
 		std::cout << "13、计算区域骨架" << std::endl;
+		std::cout << "14、Steger算法:提取二值图中曲线中心线" << std::endl;
 		std::cout << "请输入您的选择:"; 
 		int nChoise = -1;
 		std::cin >> nChoise;
@@ -75,6 +76,9 @@ int main(int argc, char* argv[])
 			break;
 		case 13:
 			ret = test_skeleton(str_err_reason);
+			break;
+		case 14:
+			ret = test_steger(str_err_reason);
 			break;
 		default:
 			std::cout << "非法输入" << std::endl;

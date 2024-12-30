@@ -54,6 +54,12 @@
     <ClCompile Include="samples\cpp\skeletonize.cpp">
       <Filter>源文件\cpp</Filter>
     </ClCompile>
+    <ClCompile Include="samples\cpp\stegerImpl.cpp">
+      <Filter>源文件\cpp</Filter>
+    </ClCompile>
+    <ClCompile Include="samples\cpp\test_steger.cpp">
+      <Filter>源文件\cpp</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="test.h">
