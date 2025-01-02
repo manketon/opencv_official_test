@@ -5,8 +5,8 @@ using namespace cv;
 using namespace std;
 //https://blog.csdn.net/liangfei868/article/details/124680559
 //https://github.com/SFNCY/Steger/tree/master/RailTurnout/RailTurnout
-int test_steger(std::string& str_err_reason)
-{
+int test_steger_2(std::string& str_err_reason)
+{//得到的中心线有很多离散的点
 	std::string str_src_img_path = "guangxian.jpg";
 	std::cout << "请输入源二值图路径:";
 	std::cin >> str_src_img_path;
@@ -97,4 +97,36 @@ int test_steger(std::string& str_err_reason)
 	waitKey(0);
 	return 0;
 }
+int test_steger_1(std::string& str_err_reason);
 
+int test_steger(std::string& str_err_reason)
+{
+	int ret = -1;
+	while (true)
+	{
+		std::cout << "0:退出" << std::endl;
+		std::cout << "1、方法1" << std::endl;
+		std::cout << "2、方法2" << std::endl;
+		std::cout << "3、方法3" << std::endl;
+		std::cout << "请输入你的选择:";
+		int nChoise = 0;
+		std::cin >> nChoise;
+		switch (nChoise)
+		{
+		case 0:
+			std::cout << "成功退出" << std::endl;
+			return 0;
+		case 1:
+			ret = test_steger_1(str_err_reason);
+			break;
+		case 2:
+			ret = test_steger_2(str_err_reason);
+			break;
+		case 3:
+			break;
+		default:
+			break;
+		}
+	}
+	return 0;
+}
