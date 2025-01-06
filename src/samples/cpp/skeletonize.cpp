@@ -271,13 +271,14 @@ void test_3(const cv::Mat& srcBin, cv::Mat& dst)
 	zhangSuenSkeletonization(srcBin, dst);
 }
 void test_4(const cv::Mat& srcBin, cv::Mat& dst)
-{
+{//与cv::ximgproc::THINNING_ZHANGSUEN一致。
 	skeletonization4(srcBin, dst);
 }
-//与test_4的结果是完全一样的
+
 void test_5(const cv::Mat& srcBin, cv::Mat& dst)
 {
-	cv::ximgproc::thinning(srcBin, dst, cv::ximgproc::THINNING_ZHANGSUEN);
+	//cv::ximgproc::THINNING_ZHANGSUEN过于冗余
+	cv::ximgproc::thinning(srcBin, dst, cv::ximgproc::THINNING_GUOHALL);
 }
 
 void ThinSubiteration1(Mat& pSrc, Mat& pDst) {
