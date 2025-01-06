@@ -443,12 +443,15 @@ int test_skeleton(std::string& str_err_reason)
 	std::cin >> str_src_bin_path;
 	cv::Mat srcBin = cv::imread(str_src_bin_path, cv::IMREAD_UNCHANGED);
 	CV_Assert(srcBin.empty() == false && srcBin.type() == CV_8UC1);
+	
 	while (true)
 	{
+		cv::TickMeter tm;
 		Mat dst;
 		int Algo = 0;
 		std::cout << "请输入所用算法(1至6，0为退出):";
 		std::cin >> Algo;
+		tm.start();
 		switch (Algo)
 		{
 		case 0:
@@ -475,6 +478,8 @@ int test_skeleton(std::string& str_err_reason)
 		default:
 			break;
 		}
+		tm.stop();
+		std::cout << __FUNCTION__ << " | cost " << tm.getTimeSec() << "S" << std::endl;
 		std::filesystem::path path_src(str_src_bin_path);
 		std::string str_dst_path = path_src.parent_path().string() + "/" + path_src.stem().string() + "_algo"+ std::to_string(Algo) + "_skeleton.png";
 		std::vector<cv::Mat> channels{ srcBin, dst, srcBin };
