@@ -6,7 +6,6 @@
 #include "test_cpp.h"
 int main(int argc, char* argv[])
 {
-	int ret = -1;
 	if (!std::filesystem::exists(RESULT_IMAGES_DIR))
 	{
 		std::filesystem::create_directories(RESULT_IMAGES_DIR);
