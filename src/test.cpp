@@ -632,6 +632,36 @@ int test_elliptic_axis(std::string& str_err_reason)
 	return 0;
 }
 
+
+int test_mean_and_std_of_rows(std::string& str_err_reason)
+{
+	std::string str_src_imgs_dir;
+	std::cout << "请输入源图片目录地址:";
+	std::cin >> str_src_imgs_dir;
+	std::vector<std::string> vec_src_imgs_pathes;
+	cv::glob(str_src_imgs_dir + "/*.png", vec_src_imgs_pathes);
+	for (const std::string & str_src_img_path : vec_src_imgs_pathes)
+	{
+		cv::Mat img = cv::imread(str_src_img_path, cv::IMREAD_UNCHANGED);
+		CV_Assert(img.empty() == false);
+		cv::Mat meanImg(img.rows, 1, CV_64FC1);
+		for (int i = 0; i < img.rows; ++i)
+		{
+			auto rowImg = img.row(i);
+			meanImg.at<double>(i, 0) = cv::mean(rowImg)[0];
+		}
+		cv::Mat r, t;
+		cv::meanStdDev(meanImg, r, t);
+		auto meanValue = r.at<double>(0, 0);
+		auto stdDevValue = t.at<double>(0, 0);
+		std::cout << "image name:" << str_src_img_path << std::endl;
+		std::cout << "           Mean:" << meanValue << std::endl;
+		std::cout << "           StdDev:" << stdDevValue << std::endl;
+		std::cout << "           Radio:" << stdDevValue * 100 / meanValue << std::endl;
+	}
+	return 0;
+}
+
 int test_moment(std::string& str_err_reason)
 {
 	std::string str_src_bin_path = "D:/DevelopMent/LibLSR20_Optimized/testImg/only_one_region/one_region.png";

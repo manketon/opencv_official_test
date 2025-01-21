@@ -4,8 +4,11 @@
 #include <iostream>
 #include <filesystem>
 #include "test_cpp.h"
+#include <opencv2/core/cvdef.h>
 int main(int argc, char* argv[])
 {
+	float angle = -90;
+	float a = std::cos(angle*CV_PI/180);
 	if (!std::filesystem::exists(RESULT_IMAGES_DIR))
 	{
 		std::filesystem::create_directories(RESULT_IMAGES_DIR);
@@ -27,6 +30,7 @@ int main(int argc, char* argv[])
 		std::cout << "12、计算协方差矩阵" << std::endl;
 		std::cout << "13、计算区域骨架" << std::endl;
 		std::cout << "14、Steger算法:提取二值图中曲线中心线" << std::endl;
+		std::cout << "15、统计一幅图的行向均值的均值以及标准差" << std::endl;
 		std::cout << "请输入您的选择:"; 
 		int nChoise = -1;
 		std::cin >> nChoise;
@@ -78,6 +82,9 @@ int main(int argc, char* argv[])
 			break;
 		case 14:
 			ret = test_steger(str_err_reason);
+			break;
+		case 15:
+			ret = test_mean_and_std_of_rows(str_err_reason);
 			break;
 		default:
 			std::cout << "非法输入" << std::endl;

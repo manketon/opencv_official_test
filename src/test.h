@@ -44,3 +44,5 @@ int test_calcCovarMatrix(std::string& str_err_reason);
 int test_skeleton(std::string& str_err_reason);
 
 int test_steger(std::string& str_err_reason);
+
+int test_mean_and_std_of_rows(std::string& str_err_reason);
