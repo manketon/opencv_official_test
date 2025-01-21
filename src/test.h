@@ -46,3 +46,6 @@ int test_skeleton(std::string& str_err_reason);
 int test_steger(std::string& str_err_reason);
 
 int test_mean_and_std_of_rows(std::string& str_err_reason);
+
+//对小数点后的n位进行四舍五入
+double round(double value, int n);

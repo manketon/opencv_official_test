@@ -652,14 +652,20 @@ int test_mean_and_std_of_rows(std::string& str_err_reason)
 		}
 		cv::Mat r, t;
 		cv::meanStdDev(meanImg, r, t);
-		auto meanValue = r.at<double>(0, 0);
-		auto stdDevValue = t.at<double>(0, 0);
+		auto meanValue = round(r.at<double>(0, 0), 2);
+		auto stdDevValue = round(t.at<double>(0, 0), 2);
 		std::cout << "image name:" << str_src_img_path << std::endl;
 		std::cout << "           Mean:" << meanValue << std::endl;
 		std::cout << "           StdDev:" << stdDevValue << std::endl;
 		std::cout << "           Radio:" << stdDevValue * 100 / meanValue << std::endl;
 	}
 	return 0;
+}
+
+double round(double value, int n)
+{
+	double scale = std::pow(10.0, n); // 计算 10 的 n 次方  
+	return std::round(value * scale) / scale; // 先乘以 scale 再四舍五入
 }
 
 int test_moment(std::string& str_err_reason)
