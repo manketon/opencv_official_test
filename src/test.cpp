@@ -667,6 +667,73 @@ double round(double value, int n)
 	double scale = std::pow(10.0, n); // 计算 10 的 n 次方  
 	return std::round(value * scale) / scale; // 先乘以 scale 再四舍五入
 }
+static ushort calc_special_median(const cv::Mat& img16u)
+{
+	std::vector<ushort> vec_fit_values;
+	std::vector<ushort> vec_all_values;
+	vec_fit_values.reserve(img16u.cols * img16u.rows);
+	vec_all_values.reserve(img16u.cols * img16u.rows);
+	for (int i = 0; i < img16u.rows; ++i)
+	{
+		for (int j = 0; j < img16u.cols; ++j)
+		{
+			const auto gray = img16u.at<ushort>(i, j);
+			vec_all_values.emplace_back(gray);
+			if (gray > 10 && gray < 550)
+			{
+				vec_fit_values.emplace_back(gray);
+			}
+		}
+	}
+	if (vec_fit_values.empty())
+	{
+		double sum = std::accumulate(vec_all_values.begin(), vec_all_values.end(), 0.0);
+		return static_cast<ushort>(sum/vec_all_values.size());
+	}
+	auto iter_median = vec_fit_values.begin() + ((vec_fit_values.size() - 1) >> 1);
+	std::nth_element(vec_fit_values.begin(), iter_median, vec_fit_values.end());
+	return *iter_median;
+}
+int test_HuaGeZi_and_calc_median(std::string& str_err_reason)
+{
+	std::string str_src_imgs_dir;
+	std::cout << "请输入源Polar图目录地址:";
+	std::cin >> str_src_imgs_dir;
+	std::string str_dst_imgs_dir;
+	std::cout << "请输入存储目录地址:";
+	std::cin >> str_dst_imgs_dir;
+	std::vector<std::string> vec_src_polarImgs_pathes;
+	cv::glob(str_src_imgs_dir + "/*.png", vec_src_polarImgs_pathes);
+	int nStepSize = 4;
+	double dTrimmingLength_mm = 3; //去边长度
+	int nTrimmingLength_pixel = std::round(dTrimmingLength_mm * 1000 / nStepSize);
+	int nGrid_width = std::round(2 * 1000 / nStepSize);
+	int nGrid_height = nGrid_width;
+	std::cout << "nTrimmingLength_pixel:" << nTrimmingLength_pixel << ", nGrid_width:" << nGrid_width << ", nGrid_height:" << nGrid_height << std::endl;
+	for (const auto& str_src_img_path : vec_src_polarImgs_pathes)
+	{
+		cv::Mat srcPolarImg = cv::imread(str_src_img_path, cv::IMREAD_UNCHANGED);
+		CV_Assert(srcPolarImg.empty() == false && srcPolarImg.type() == CV_16UC1);
+		cv::Point center(srcPolarImg.cols / 2, srcPolarImg.rows / 2);
+		cv::Mat polarImgRemovedEdge = srcPolarImg.clone();
+		cv::circle(polarImgRemovedEdge, center, srcPolarImg.cols / 2, 0, 2 * nTrimmingLength_pixel);
+		std::filesystem::path path_src(str_src_img_path);
+		cv::imwrite(str_dst_imgs_dir + "/" + path_src.stem().string() + "_RemovedEdge.png", polarImgRemovedEdge);
+		cv::Mat medianImg(polarImgRemovedEdge.rows/nGrid_height, polarImgRemovedEdge.cols / nGrid_width, CV_16UC1, cv::Scalar::all(0));
+		for (int i = 0; i < medianImg.rows; ++i)
+		{
+			for (int j = 0; j < medianImg.cols; ++j)
+			{
+				cv::Rect roi(j * nGrid_width, i * nGrid_height, nGrid_width, nGrid_height);
+				cv::Mat subImg(polarImgRemovedEdge, roi);
+				auto medianV = calc_special_median(subImg);
+				medianImg.at<ushort>(i, j) = medianV;
+			}
+		}
+		cv::imwrite(str_dst_imgs_dir + "/" + path_src.stem().string() + "_median.png", medianImg);
+	}
+	return 0;
+}
 
 int test_moment(std::string& str_err_reason)
 {
