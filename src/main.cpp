@@ -7,7 +7,7 @@
 #include <opencv2/core/cvdef.h>
 int main(int argc, char* argv[])
 {
-	float angle = -90;
+	float angle = -90.f;
 	float a = std::cos(angle*CV_PI/180);
 	if (!std::filesystem::exists(RESULT_IMAGES_DIR))
 	{
@@ -32,6 +32,7 @@ int main(int argc, char* argv[])
 		std::cout << "14、Steger算法:提取二值图中曲线中心线" << std::endl;
 		std::cout << "15、统计一幅图的行向均值的均值以及标准差" << std::endl;
 		std::cout << "16、画格子、算中值" << std::endl;
+		std::cout << "17、测试仅获取cv::Mat.data" << std::endl;
 		std::cout << "请输入您的选择:"; 
 		int nChoise = -1;
 		std::cin >> nChoise;
@@ -89,6 +90,9 @@ int main(int argc, char* argv[])
 			break;
 		case 16:
 			ret = test_HuaGeZi_and_calc_median(str_err_reason);
+			break;
+		case 17:
+			ret = test_getOnlyImgData();
 			break;
 		default:
 			std::cout << "非法输入" << std::endl;

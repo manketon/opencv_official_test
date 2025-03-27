@@ -735,6 +735,28 @@ int test_HuaGeZi_and_calc_median(std::string& str_err_reason)
 	return 0;
 }
 
+int test_getOnlyImgData()
+{
+	for (int i = 0; i < UINT_MAX; ++i)
+	{
+		const int imgWidth = 10000;
+		const int imgHeight = imgWidth;
+		uchar* pData = nullptr;
+		{
+			cv::Mat tmpImg(imgHeight, imgWidth, CV_8UC1, cv::Scalar::all(255));
+			pData = tmpImg.data; //获取字节流
+			auto umat = tmpImg.u;
+			tmpImg.data = nullptr;
+			umat->origdata = nullptr;
+		}
+		cv::Mat img(imgHeight, imgWidth, CV_8UC1, pData); //使用上一个Mat的字节流重新构造一个Mat
+		std::cout << "img.size:" << img.size() << std::endl;
+		img = cv::Mat();//一定要先置空
+		cv::fastFree(pData);
+	}
+	return 0;
+}
+
 int test_moment(std::string& str_err_reason)
 {
 	std::string str_src_bin_path = "D:/DevelopMent/LibLSR20_Optimized/testImg/only_one_region/one_region.png";
