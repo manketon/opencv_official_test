@@ -53,3 +53,5 @@ int test_HuaGeZi_and_calc_median(std::string& str_err_reason);
 
 
 int test_getOnlyImgData();
+
+int test_resize_images(std::string& str_err_reason);

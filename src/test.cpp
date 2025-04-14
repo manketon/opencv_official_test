@@ -757,6 +757,37 @@ int test_getOnlyImgData()
 	return 0;
 }
 
+int test_resize_images(std::string& str_err_reason)
+{
+	std::string str_src_imgs_dir;
+	std::cout << "ÇëÊäÈëÔ´Í¼Æ¬Ä¿Â¼µØÖ·:";
+	std::cin >> str_src_imgs_dir;
+
+	std::string str_dst_imgs_dir = str_src_imgs_dir;
+	std::cout << "ÇëÊäÈë´æ´¢Ä¿Â¼µØÖ·:";
+	std::cin >> str_dst_imgs_dir;
+	cv::Size dstSize(1500, 2000);
+	std::vector < std::string > vec_src_imgs_pathes;
+	cv::glob(str_src_imgs_dir + "/*", vec_src_imgs_pathes);
+	for (const auto& str_src_img_path : vec_src_imgs_pathes)
+	{
+		cv::Mat srcImg = cv::imread(str_src_img_path, cv::IMREAD_UNCHANGED);
+		CV_Assert(srcImg.empty() == false);
+		if (srcImg.size() == dstSize)
+		{
+			continue;
+		}
+		cv::Mat resizedImg;
+		cv::resize(srcImg, resizedImg, dstSize);
+		std::filesystem::path path_src(str_src_img_path);
+		std::string str_dst_path = str_dst_imgs_dir + "/" + path_src.stem().string() + "_W_" + std::to_string(dstSize.width)
+			+ "_H_" + std::to_string(dstSize.height) + ".png";
+		CV_Assert(cv::imwrite(str_dst_path, resizedImg));
+		std::cout << __FUNCTION__ << " | Save resized image to path:" << str_dst_path << std::endl;
+	}
+	return 0;
+}
+
 int test_moment(std::string& str_err_reason)
 {
 	std::string str_src_bin_path = "D:/DevelopMent/LibLSR20_Optimized/testImg/only_one_region/one_region.png";

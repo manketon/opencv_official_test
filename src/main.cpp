@@ -33,6 +33,7 @@ int main(int argc, char* argv[])
 		std::cout << "15、统计一幅图的行向均值的均值以及标准差" << std::endl;
 		std::cout << "16、画格子、算中值" << std::endl;
 		std::cout << "17、测试仅获取cv::Mat.data" << std::endl;
+		std::cout << "18、修改目录中的图片为指定大小" << std::endl;
 		std::cout << "请输入您的选择:"; 
 		int nChoise = -1;
 		std::cin >> nChoise;
@@ -93,6 +94,9 @@ int main(int argc, char* argv[])
 			break;
 		case 17:
 			ret = test_getOnlyImgData();
+			break;
+		case 18:
+			ret = test_resize_images(str_err_reason);
 			break;
 		default:
 			std::cout << "非法输入" << std::endl;
