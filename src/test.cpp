@@ -4,8 +4,21 @@
 #include <vector>
 #include "test.h"
 #include "samples/cpp/common.h"
+#include <fstream>
 using namespace cv;
 using namespace std;
+// 替换字符串中所有 from 为 to
+std::string replaceAll(std::string str, const std::string& from, const std::string& to) {
+	size_t pos = 0;
+	// 循环查找并替换，直到找不到目标子串
+	while ((pos = str.find(from, pos)) != std::string::npos) {
+		str.replace(pos, from.length(), to);
+		// 避免重复替换刚替换的内容，更新查找起始位置
+		pos += to.length();
+	}
+	return str;
+}
+
 //中心矩
 double my_center_momnet(const std::vector<cv::Point>& pnts, const cv::Point2d& centroid, const int i, const int j)
 {
@@ -785,6 +798,47 @@ int test_resize_images(std::string& str_err_reason)
 		CV_Assert(cv::imwrite(str_dst_path, resizedImg));
 		std::cout << __FUNCTION__ << " | Save resized image to path:" << str_dst_path << std::endl;
 	}
+	return 0;
+}
+
+int test_generate_compilation_script(std::string& str_err_reason)
+{
+	std::string str_src_dir;
+	std::cout << "请输入源目录地址:";
+	std::cin >> str_src_dir;
+	//$(COMMON_LIB)/$(ProjectName)/$(Platform)/$(PlatformToolSet)/$(Configuration)/
+	std::string str_dst_dir = "$(COMMON_LIB)/$(ProjectName)/$(Platform)/$(PlatformToolSet)/$(Configuration)";
+	//str_dst_dir = "$(OutDir)";
+	std::vector<std::string> vec_pathes;
+	cv::glob(str_src_dir + "/*.*", vec_pathes, false);
+	std::string str_dst_file_path = "./compilation_script.txt";
+	std::ofstream fout(str_dst_file_path);
+	CV_Assert(fout);
+	fout << "setlocal" << std::endl;
+	for (auto str_path : vec_pathes){
+		const std::filesystem::path path_src(str_path); //使用$(Platform)代替x64，使用$(PlatformToolSet)代替v142，$(Configuration)代替Release/Debug
+		if (path_src.extension() == ".lib") {
+			//continue;
+		}
+		str_path = std::filesystem::absolute(str_path).string();
+		fout << "D:/win_install/CMake/bin/cmake.exe -E copy_if_different ";
+		str_path = replaceAll(str_path, "D:\\common_lib", "$(COMMON_LIB)");
+		str_path = replaceAll(str_path, "x64", "$(Platform)");
+		str_path = replaceAll(str_path, "v142", "$(PlatformToolSet)");
+		str_path = replaceAll(str_path, "v143", "$(PlatformToolSet)");
+		str_path = replaceAll(str_path, "Release", "$(Configuration)");
+		str_path = replaceAll(str_path, "Debug", "$(Configuration)");
+		std::string str_dst_path = str_dst_dir + "/" + path_src.filename().string();
+		fout << str_path << " " << str_dst_path << std::endl;
+		fout << "if %errorlevel% neq 0 goto :cmEnd" << std::endl;
+	}
+	fout << ":cmEnd" << std::endl;
+	fout << "endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone" << std::endl;
+	fout << ":cmErrorLevel" << std::endl;
+	fout << "exit /b %1" << std::endl;
+	fout << ":cmDone" << std::endl;
+	fout << "if %errorlevel% neq 0 goto :VCEnd" << std::endl;
+	std::cout << "Save script to file:" << std::filesystem::absolute(str_dst_file_path).string() << std::endl;
 	return 0;
 }
 
