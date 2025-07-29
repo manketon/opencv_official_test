@@ -35,6 +35,7 @@ int main(int argc, char* argv[])
 		std::cout << "17、测试仅获取cv::Mat.data" << std::endl;
 		std::cout << "18、修改目录中的图片为指定大小" << std::endl;
 		std::cout << "19、生成VS编译时拷贝库的脚本文件" << std::endl;
+		std::cout << "20、测试HoughLinesP" << std::endl;
 		std::cout << "请输入您的选择:"; 
 		int nChoise = -1;
 		std::cin >> nChoise;
@@ -101,6 +102,9 @@ int main(int argc, char* argv[])
 			break;
 		case 19:
 			ret = test_generate_compilation_script(str_err_reason);
+			break;
+		case 20:
+			ret = test_HoughLinesP(str_err_reason);
 			break;
 		default:
 			std::cout << "非法输入" << std::endl;

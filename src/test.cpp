@@ -5,6 +5,7 @@
 #include "test.h"
 #include "samples/cpp/common.h"
 #include <fstream>
+#include "hough.hpp"
 using namespace cv;
 using namespace std;
 // 替换字符串中所有 from 为 to
@@ -842,6 +843,42 @@ int test_generate_compilation_script(std::string& str_err_reason)
 	fout << ":cmDone" << std::endl;
 	fout << "if %errorlevel% neq 0 goto :VCEnd" << std::endl;
 	std::cout << "Save script to file:" << std::filesystem::absolute(str_dst_file_path).string() << std::endl;
+	return 0;
+}
+
+int test_HoughLinesP(std::string& str_err_reason)
+{
+	int Votes_Lower_Limit = 40;
+	double minLineLength = 80;
+	double maxLineGap = 20;
+	std::cout << "请输入二值图路径:";
+	std::string str_bin_path;
+	std::cin >> str_bin_path;
+	cv::Mat srcBin = cv::imread(str_bin_path, cv::IMREAD_UNCHANGED);
+	CV_Assert(srcBin.empty() == false && srcBin.type() == CV_8UC1);
+	std::vector<cv::Vec4i> houghLines;
+	//概率霍夫变换
+	nsYRP::HoughLinesP(srcBin,	//输入图，可能会被修改
+		houghLines,			//线条结果
+		1,				//rho = 1
+		CV_PI / 180,	//theta = 1弧度制	
+		Votes_Lower_Limit,				//votes阈值
+		minLineLength,				//直线最短长度
+		maxLineGap);			//直线最大间隔
+	std::cout << __FUNCTION__ << " | houghLines size:" << houghLines.size() << std::endl;
+	cv::Mat stitchedBin = srcBin.clone();
+	for (int i = 0; i < houghLines.size(); ++i)
+	{
+		const cv::Vec4i& vec4i = houghLines[i];
+		const cv::Point begin(vec4i[0], vec4i[1]), end(vec4i[2], vec4i[3]);
+		cv::line(stitchedBin, begin, end, 255, 1);
+	}
+	std::vector<cv::Mat> channels{srcBin, stitchedBin, srcBin};
+	cv::Mat show_rslt;
+	cv::merge(channels, show_rslt);
+	std::filesystem::path path_src(str_bin_path);
+	auto dst_path = path_src.parent_path().string() + "/" + path_src.stem().string() + "_stitched.png";
+	cv::imwrite(dst_path, show_rslt);
 	return 0;
 }
 

@@ -29,7 +29,7 @@ extern "C" {
 //宏定义
 
 //类型定义
-namespace YRP
+namespace nsYRP
 {
 	void HoughLinesP(cv::InputArray _image, cv::OutputArray _lines,
 		double rho, double theta, int threshold,

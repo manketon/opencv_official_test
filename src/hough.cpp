@@ -6,7 +6,7 @@
 #include <algorithm>
 #include <iterator>
 using namespace cv;
-namespace YRP
+namespace nsYRP
 {
 	static inline int
 		computeNumangle(double min_theta, double max_theta, double theta_step)
@@ -152,6 +152,7 @@ namespace YRP
 	static bool ocl_HoughLinesP(InputArray _src, OutputArray _lines, double rho, double theta, int threshold,
 		double minLineLength, double maxGap)
 	{
+		printf("func:%s, line:%d\n", __FUNCTION__, __LINE__);
 		CV_Assert(_src.type() == CV_8UC1);
 
 		if (!(rho > 0 && theta > 0)) {
