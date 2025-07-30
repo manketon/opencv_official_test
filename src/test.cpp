@@ -6,6 +6,7 @@
 #include "samples/cpp/common.h"
 #include <fstream>
 #include "hough.hpp"
+#include <omp.h>
 using namespace cv;
 using namespace std;
 // 替换字符串中所有 from 为 to
@@ -856,29 +857,70 @@ int test_HoughLinesP(std::string& str_err_reason)
 	std::cin >> str_bin_path;
 	cv::Mat srcBin = cv::imread(str_bin_path, cv::IMREAD_UNCHANGED);
 	CV_Assert(srcBin.empty() == false && srcBin.type() == CV_8UC1);
-	std::vector<cv::Vec4i> houghLines;
-	//概率霍夫变换
-	nsYRP::HoughLinesP(srcBin,	//输入图，可能会被修改
-		houghLines,			//线条结果
-		1,				//rho = 1
-		CV_PI / 180,	//theta = 1弧度制	
-		Votes_Lower_Limit,				//votes阈值
-		minLineLength,				//直线最短长度
-		maxLineGap);			//直线最大间隔
-	std::cout << __FUNCTION__ << " | houghLines size:" << houghLines.size() << std::endl;
-	cv::Mat stitchedBin = srcBin.clone();
-	for (int i = 0; i < houghLines.size(); ++i)
-	{
-		const cv::Vec4i& vec4i = houghLines[i];
-		const cv::Point begin(vec4i[0], vec4i[1]), end(vec4i[2], vec4i[3]);
-		cv::line(stitchedBin, begin, end, 255, 1);
+	int nLoopTimes = 0;
+	std::cout << "请输入循环次数:";
+	std::cin >> nLoopTimes;
+	for (int i = 0; i < nLoopTimes; ++i) {
+		std::vector<cv::Vec4i> stitchedLines;
+		cv::TickMeter tm;
+		tm.start();
+		#pragma omp parallel for
+		for (int j = 0; j < 600000; ++j) {
+			std::vector<cv::Vec4i> houghLines;
+			//概率霍夫变换
+			nsYRP::HoughLinesP(srcBin,	//输入图，可能会被修改
+				houghLines,			//线条结果
+				1,				//rho = 1
+				CV_PI / 180,	//theta = 1弧度制	
+				Votes_Lower_Limit,				//votes阈值
+				minLineLength,				//直线最短长度
+				maxLineGap);			//直线最大间隔
+			#pragma omp critical
+			{
+				stitchedLines.insert(stitchedLines.end(), houghLines.begin(), houghLines.end());
+			}
+		}
+		tm.stop();
+		std::cout << __FUNCTION__ << " | all HoughLinesP cost:" << tm.getTimeSec() << " S" << std::endl;
+		cv::Mat stitchedBin = srcBin.clone();
+		for (int i = 0; i < stitchedLines.size(); ++i)
+		{
+			const cv::Vec4i& vec4i = stitchedLines[i];
+			const cv::Point begin(vec4i[0], vec4i[1]), end(vec4i[2], vec4i[3]);
+			cv::line(stitchedBin, begin, end, 255, 1);
+		}
+		std::vector<cv::Mat> channels{ srcBin, stitchedBin, srcBin };
+		cv::Mat show_rslt;
+		cv::merge(channels, show_rslt);
+		std::filesystem::path path_src(str_bin_path);
+		auto dst_path = path_src.parent_path().string() + "/" + path_src.stem().string() + "_stitched.png";
+		cv::imwrite(dst_path, show_rslt);
 	}
-	std::vector<cv::Mat> channels{srcBin, stitchedBin, srcBin};
-	cv::Mat show_rslt;
-	cv::merge(channels, show_rslt);
-	std::filesystem::path path_src(str_bin_path);
-	auto dst_path = path_src.parent_path().string() + "/" + path_src.stem().string() + "_stitched.png";
-	cv::imwrite(dst_path, show_rslt);
+	return 0;
+}
+
+int test_openMP_parallel_for(std::string& str_err_reason)
+{
+	const auto nTotalThreads = omp_get_num_procs() - 2;
+	std::vector<int> datas;
+	std::cout << __FUNCTION__ << " | nTotalThreads:" << nTotalThreads << std::endl;
+	for (int i = 0; i < nTotalThreads; ++i) {
+		datas.emplace_back(i);
+	}
+
+	#pragma omp parallel for num_threads(nTotalThreads)
+	for (int i = 0; i < INT_MAX;++i) {
+		int thread_id = omp_get_thread_num();
+		datas[thread_id] += 3;
+		datas[thread_id] -= 3;
+	}
+	for (int i = 0; i < nTotalThreads; ++i) {
+		if (datas[i] != i){
+			std::cout << "datas[i]:" << datas[i] << " must == i:" << i << std::endl;
+			return -1;
+		}
+	}
+	std::cout << __FUNCTION__ << " | 校验成功" << std::endl;
 	return 0;
 }
 
