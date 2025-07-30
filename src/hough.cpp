@@ -210,23 +210,22 @@ namespace nsYRP
 	/****************************************************************************************\
 	*                              Probabilistic Hough Transform                             *
 	\****************************************************************************************/
-	static void
-	HoughLinesProbabilistic(Mat& image,
+	void HoughLinesProbabilistic(const Mat& image,
 			float rho, float theta, int threshold,
 			int lineLength, int lineGap,
-			std::vector<Vec4i>& lines, int linesMax)
+			std::vector<Vec4i>& lines, cv::Mat& accum, Mat& mask, int linesMax)
 	{
 		Point pt;
-		float irho = 1 / rho;
+		const float irho = 1 / rho;
 		RNG rng((uint64)-1);
 
 		CV_Assert(image.type() == CV_8UC1);
 
-		int width = image.cols;
-		int height = image.rows;
+		const int width = image.cols;
+		const int height = image.rows;
 
-		int numangle = computeNumangle(0.0, CV_PI, theta);
-		int numrho = cvRound(((width + height) * 2 + 1) / rho);
+		const int numangle = computeNumangle(0.0, CV_PI, theta);
+		const int numrho = cvRound(((width + height) * 2 + 1) / rho);
 
 #if defined HAVE_IPP && IPP_VERSION_X100 >= 810 && !IPP_DISABLE_HOUGH
 		CV_IPP_CHECK()
@@ -257,8 +256,9 @@ namespace nsYRP
 		}
 #endif
 
-		Mat accum = Mat::zeros(numangle, numrho, CV_32SC1);
-		Mat mask(height, width, CV_8UC1);
+		accum.create(numangle, numrho, CV_32SC1);
+		accum.setTo(cv::Scalar::all(0));
+		mask.create(height, width, CV_8UC1);
 		std::vector<float> trigtab(numangle * 2);
 
 		for (int n = 0; n < numangle; n++)
@@ -458,14 +458,14 @@ namespace nsYRP
 		}
 	}
 
-	void HoughLinesP(cv::InputArray _image, cv::OutputArray _lines, double rho, double theta, int threshold, double minLineLength, double maxGap)
+	void HoughLinesP(cv::InputArray _image, cv::OutputArray _lines, double rho, double theta, int threshold, double minLineLength, double maxGap, cv::Mat& accum, cv::Mat& mask)
 	{
 		CV_OCL_RUN(_image.isUMat() && _lines.isUMat(),
 			ocl_HoughLinesP(_image, _lines, rho, theta, threshold, minLineLength, maxGap));
 
 		Mat image = _image.getMat();
 		std::vector<Vec4i> lines;
-		HoughLinesProbabilistic(image, (float)rho, (float)theta, threshold, cvRound(minLineLength), cvRound(maxGap), lines, INT_MAX);
+		HoughLinesProbabilistic(image, (float)rho, (float)theta, threshold, cvRound(minLineLength), cvRound(maxGap), lines, accum, mask, INT_MAX);
 		Mat(lines).copyTo(_lines);
 	}
 

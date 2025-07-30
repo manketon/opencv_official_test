@@ -860,13 +860,19 @@ int test_HoughLinesP(std::string& str_err_reason)
 	int nLoopTimes = 0;
 	std::cout << "请输入循环次数:";
 	std::cin >> nLoopTimes;
+	const auto nTotalThreads = omp_get_num_procs() - 2;
+	std::vector<cv::Mat> vec_accumes(nTotalThreads, cv::Mat()), vec_masks(nTotalThreads, cv::Mat());
+
 	for (int i = 0; i < nLoopTimes; ++i) {
 		std::vector<cv::Vec4i> stitchedLines;
 		cv::TickMeter tm;
 		tm.start();
-		#pragma omp parallel for
+		#pragma omp parallel for num_threads(nTotalThreads)
 		for (int j = 0; j < 600000; ++j) {
 			std::vector<cv::Vec4i> houghLines;
+			const int tid = omp_get_thread_num();
+			cv::Mat& accum = vec_accumes[tid];
+			cv::Mat& mask = vec_masks[tid];
 			//概率霍夫变换
 			nsYRP::HoughLinesP(srcBin,	//输入图，可能会被修改
 				houghLines,			//线条结果
@@ -874,7 +880,10 @@ int test_HoughLinesP(std::string& str_err_reason)
 				CV_PI / 180,	//theta = 1弧度制	
 				Votes_Lower_Limit,				//votes阈值
 				minLineLength,				//直线最短长度
-				maxLineGap);			//直线最大间隔
+				maxLineGap,			//直线最大间隔
+				accum,
+				mask
+				);
 			#pragma omp critical
 			{
 				stitchedLines.insert(stitchedLines.end(), houghLines.begin(), houghLines.end());

@@ -26,6 +26,7 @@ extern "C" {
 #endif  
 //引用C++头文件：先是标准库头文件，后是项目头文件
 #include <opencv2/core.hpp>
+#include <opencv2/core/mat.hpp>
 //宏定义
 
 //类型定义
@@ -33,6 +34,11 @@ namespace nsYRP
 {
 	void HoughLinesP(cv::InputArray _image, cv::OutputArray _lines,
 		double rho, double theta, int threshold,
-		double minLineLength, double maxGap);
+		double minLineLength, double maxGap, cv::Mat& accum, cv::Mat& mask);
+
+	void HoughLinesProbabilistic(const cv::Mat& image,
+		float rho, float theta, int threshold,
+		int lineLength, int lineGap,
+		std::vector<cv::Vec4i>& lines, cv::Mat& accum, cv::Mat& mask, int linesMax = INT_MAX);
 }
 //函数原型定义

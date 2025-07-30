@@ -80,10 +80,10 @@
     <ClInclude Include="samples\cpp\common.h">
       <Filter>源文件\cpp</Filter>
     </ClInclude>
-    <ClInclude Include="hough.hpp">
-      <Filter>源文件</Filter>
-    </ClInclude>
     <ClInclude Include="opencl_kernels_imgproc.hpp">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="hough.hpp">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>
