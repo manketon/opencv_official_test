@@ -62,3 +62,6 @@ int test_generate_compilation_script(std::string& str_err_reason);
 int test_HoughLinesP(std::string& str_err_reason);
 
 int test_openMP_parallel_for(std::string& str_err_reason);
+
+
+int test_merge_yolo_seg_rslts();

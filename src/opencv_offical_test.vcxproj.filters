@@ -66,6 +66,9 @@
     <ClCompile Include="opencl_kernels_imgproc.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="merge_yolo_seg_rslt.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="test.h">
