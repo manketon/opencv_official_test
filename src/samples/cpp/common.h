@@ -33,18 +33,18 @@ void print_matrix(const std::vector<T>& vec)
 	std::cout << "]" << std::endl;
 }
 
-
-inline cv::Point2d area_center(const std::vector<cv::Point>& pnts)
+template<typename T>
+inline cv::Point2d area_center(const std::vector<T>& pnts)
 {
 	CV_Assert(pnts.empty() == false);
-	size_t sumX = 0, sumY = 0;
+	double sumX = 0.0, sumY = 0.0;
 	for (size_t i = 0; i < pnts.size(); ++i)
 	{
 		sumX += pnts[i].x;
 		sumY += pnts[i].y;
 	}
 	cv::Point2d centroid;
-	centroid.x = sumX * 1.0 / pnts.size();
-	centroid.y = sumY * 1.0 / pnts.size();
+	centroid.x = sumX / pnts.size();
+	centroid.y = sumY / pnts.size();
 	return centroid;
 }

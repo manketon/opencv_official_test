@@ -7,6 +7,7 @@
 #include <fstream>
 #include "hough.hpp"
 #include <omp.h>
+#include <cmath>
 using namespace cv;
 using namespace std;
 // 替换字符串中所有 from 为 to
@@ -22,7 +23,8 @@ std::string replaceAll(std::string str, const std::string& from, const std::stri
 }
 
 //中心矩
-double my_center_momnet(const std::vector<cv::Point>& pnts, const cv::Point2d& centroid, const int i, const int j)
+template <typename T>
+double my_center_momnet(const std::vector<T>& pnts, const cv::Point2d& centroid, const int i, const int j)
 {
 	if (pnts.empty())
 	{
@@ -719,8 +721,8 @@ void calc_moment_1(cv::InputArray _src)
 	double length_a = sqrt(2 * (mu20 + mu02 + sqrt((mu20 - mu02) * (mu20 - mu02) + 4 * mu11 * mu11))); //halcon中为8
 	double length_b = sqrt(2 * (mu20 + mu02 - sqrt((mu20 - mu02) * (mu20 - mu02) + 4 * mu11 * mu11))); //halcon中为8
 }
-
-void moments_region_2nd(const std::vector<cv::Point>& region, double& M11, double& M20, double& M02, double& Ia, double& Ib)
+template<typename T>
+void moments_region_2nd(const std::vector<T>& region, double& M11, double& M20, double& M02, double& Ia, double& Ib)
 {
 	if (region.empty())
 	{
@@ -735,8 +737,8 @@ void moments_region_2nd(const std::vector<cv::Point>& region, double& M11, doubl
 	Ia = h + delta;
 	Ib = h - delta;
 }
-
-void elliptic_axis(const std::vector<cv::Point>& region, double& Ra, double& Rb, double& Phi)
+template<typename T>
+void elliptic_axis(const std::vector<T>& region, double& Ra, double& Rb, double& Phi)
 {
 	if (region.size() <= 1)
 	{
@@ -754,11 +756,13 @@ void elliptic_axis(const std::vector<cv::Point>& region, double& Ra, double& Rb,
 	Phi = -0.5 * atan2(2 * M11, M02 - M20);
 	auto M20_add_M02 = M20 + M02;
 	auto delta = std::sqrt((M20 - M02) * (M20 - M02) + 4 * M11 * M11);
-	Ra = std::sqrt(8 * (M20_add_M02 + delta)) / 2;
-	Rb = std::sqrt(8 * (M20_add_M02 - delta)) / 2;
+	const double tmp1 = 8 * (M20_add_M02 + delta);
+	Ra =  std::isgreaterequal(tmp1, 0.0)? std::sqrt(tmp1) / 2 : 0.0;
+	const double tmp2 = 8 * (M20_add_M02 - delta);
+	Rb = std::isgreaterequal(tmp2, 0.0) ? std::sqrt(tmp2) / 2 : 0.0;
 }
-
-void elliptic_axis_using_covMat(const std::vector<cv::Point>& region, double& Ra, double& Rb, double& Phi)
+template<typename T>
+void elliptic_axis_using_covMat(const std::vector<T>& region, double& Ra, double& Rb, double& Phi)
 {
 	if (region.size() <= 1)
 	{
@@ -812,6 +816,7 @@ void elliptic_axis_using_covMat(const std::vector<cv::Point>& region, double& Ra
 
 int test_elliptic_axis(std::string& str_err_reason)
 {
+#if 1
 	std::string str_src_bin_path = "D:/DevelopMent/LibLSR20_Optimized/testImg/only_one_region/one_region.png";
 	std::cout << "请输入二值图路径:";
 	std::cin >> str_src_bin_path;
@@ -820,6 +825,11 @@ int test_elliptic_axis(std::string& str_err_reason)
 
 	std::vector<cv::Point> region;
 	cv::findNonZero(srcBin, region);
+#else
+	std::vector<cv::Point2f> region{ cv::Point2f(0.0412165783, 0.0911108851), cv::Point2f(12.3649731, 27.3332653),
+		cv::Point2f(8.24331570, 18.2221775), cv::Point2f(4.12165785, 9.11108875)
+	};
+#endif
 	double Ra = 0.0, Rb = 0.0, theta = 0.0;
 	elliptic_axis(region, Ra, Rb, theta);
 	std::cout << "elliptic_axis result:" << std::endl;
