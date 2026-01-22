@@ -734,8 +734,16 @@ void moments_region_2nd(const std::vector<T>& region, double& M11, double& M20, 
 	Ia = h + delta;
 	Ib = h - delta;
 }
+/**
+ * @brief 计算区域的长半轴、短半轴以及与X轴正方向的夹角 (与Halcon中的elliptic_axis一致）
+ * @param region -[in] 区域顶点列表（区域可以不连通）
+ * @param YAxisIsDownward -[in] 顶点列表中，Y轴的正方形是否向下 （如点在图像坐标系中，则为true；点在笛卡尔或XY坐标系中，则为false）
+ * @param Ra -[out] 长半轴。Ra >= 0.0
+ * @param Rb -[out] 短半轴，当区域为空或仅1个点时或像素点在一条直线上时，Rb为0。Rb >= 0.0 && Rb <= Ra
+ * @param Phi -[out] 区域与X轴正方向的夹角，单位：弧度，取值范围:(-PI/2, PI/2]
+ */
 template<typename T>
-void elliptic_axis(const std::vector<T>& region, double& Ra, double& Rb, double& Phi)
+void elliptic_axis(const std::vector<T>& region, const bool YAxisIsDownward, double& Ra, double& Rb, double& Phi)
 {
 	if (region.size() <= 1)
 	{
@@ -757,9 +765,12 @@ void elliptic_axis(const std::vector<T>& region, double& Ra, double& Rb, double&
 	Ra = std::isgreaterequal(tmp1, 0.0) ? std::sqrt(tmp1) / 2 : 0.0;
 	const double tmp2 = 8 * (M20_add_M02 - delta);
 	Rb = std::isgreaterequal(tmp2, 0.0) ? std::sqrt(tmp2) / 2 : 0.0;
+	if (!YAxisIsDownward){
+		Phi *= -1;
+	}
 }
 template<typename T>
-void elliptic_axis_using_covMat(const std::vector<T>& region, double& Ra, double& Rb, double& Phi)
+void elliptic_axis_using_covMat(const std::vector<T>& region, const bool YAxisIsDownward, double& Ra, double& Rb, double& Phi)
 {
 	if (region.size() <= 1)
 	{
@@ -809,11 +820,16 @@ void elliptic_axis_using_covMat(const std::vector<T>& region, double& Ra, double
 	double b = sqrt(eigenVals.at<double>(1, 0));
 	Ra = max(a, b) * 2; //长半轴
 	Rb = min(a, b) * 2; //短半轴
+	if (!YAxisIsDownward) {
+		Phi *= -1;
+	}
 }
 
 int test_elliptic_axis(std::string& str_err_reason)
 {
+	bool YAxisIsDownward = true;
 #if 1
+	YAxisIsDownward = true;
 	std::string str_src_bin_path = "D:/DevelopMent/LibLSR20_Optimized/testImg/only_one_region/one_region.png";
 	std::cout << "请输入二值图路径:";
 	std::cin >> str_src_bin_path;
@@ -823,18 +839,19 @@ int test_elliptic_axis(std::string& str_err_reason)
 	std::vector<cv::Point> region;
 	cv::findNonZero(srcBin, region);
 #else
+	YAxisIsDownward = false;
 	std::vector<cv::Point2f> region{ cv::Point2f(0.0412165783, 0.0911108851), cv::Point2f(12.3649731, 27.3332653),
 		cv::Point2f(8.24331570, 18.2221775), cv::Point2f(4.12165785, 9.11108875)
-	};
+	};//这些点在XY坐标系中
 #endif
 	double Ra = 0.0, Rb = 0.0, theta = 0.0;
-	elliptic_axis(region, Ra, Rb, theta);
+	elliptic_axis(region, YAxisIsDownward, Ra, Rb, theta);
 	std::cout << "elliptic_axis result:" << std::endl;
 	std::cout << "Ra=" << Ra << std::endl;
 	std::cout << "Rb=" << Rb << std::endl;
 	std::cout << "theta=" << theta << std::endl;
 	Ra = 0.0, Rb = 0.0, theta = 0.0;
-	elliptic_axis_using_covMat(region, Ra, Rb, theta);
+	elliptic_axis_using_covMat(region, YAxisIsDownward, Ra, Rb, theta);
 	std::cout << "elliptic_axis_using_covMat result:" << std::endl;
 	std::cout << "Ra=" << Ra << std::endl;
 	std::cout << "Rb=" << Rb << std::endl;
