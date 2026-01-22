@@ -256,83 +256,6 @@ cv::Mat getImg(std::vector<cv::Point> pnts) {
 	}
 	return img;
 }
-template<typename T>
-int test_ange(const vector<T>& points) {
-	// 1. 定义四个点 (注意：OpenCV的坐标通常是 (x, y)，对应 (col, row))
-	// 这里的坐标值很大，为了精度我们使用 float
-
-	// 2. 计算最小包围矩形
-	RotatedRect rect = minAreaRect(points);
-
-	// --- 调试输出 minAreaRect 的原始结果 ---
-	cout << "minAreaRect 原始中心: " << rect.center << endl;
-	cout << "minAreaRect 原始尺寸 (w, h): " << rect.size.width << ", " << rect.size.height << endl;
-	cout << "minAreaRect 原始角度 (与X轴夹角): " << rect.angle << " degrees" << endl;
-	// 对于这组共线点，angle 应该接近 -66 或 -24 左右，取决于它把哪条边定义为 width。
-
-	// 3. 第一步转换：确定长轴方向 (Major Axis)
-	// minAreaRect 的 angle 是 width 边的角度。
-	// 我们需要判断 width 和 height 哪个是长轴。
-	double majorAxisAngle;
-
-	if (rect.size.width > rect.size.height) {
-		// width 是长边，angle 直接就是长轴角度
-		majorAxisAngle = rect.angle;
-	}
-	else {
-		// height 是长边，长轴角度 = width边角度 + 90度
-		majorAxisAngle = rect.angle + 90.0;
-	}
-
-	// 4. 第二步转换：确定短轴方向 (Minor Axis)
-	// 短轴垂直于长轴。
-	// 注意：这里我们加 90 度或减 90 度都可以，因为短轴是双向的。
-	// 但为了符合 [-90, 90] 的范围习惯，我们通常选择较小的绝对值方向，或者直接计算后归一化。
-	// 这里我们简单地用长轴 + 90度。
-	double minorAxisAngle = majorAxisAngle + 90.0;
-
-	// --- 角度归一化辅助函数 (将角度限制在 [-180, 180] 或 [-90, 90]) ---
-	auto normalizeAngle = [](double angle) {
-		angle = fmod(angle, 360.0);
-		if (angle > 180) angle -= 360;
-		if (angle <= -180) angle += 360;
-		return angle;
-	};
-
-	minorAxisAngle = normalizeAngle(minorAxisAngle);
-
-	cout << "推导的长轴角度: " << majorAxisAngle << endl;
-	cout << "推导的短轴角度 (数学定义): " << minorAxisAngle << endl;
-
-	// 5. 第三步转换：计算题目要求的角度
-	// 定义：短轴与 Y轴负方向 的 顺时针 夹角。
-	// 范围：[-90, 90]
-	// 0度：向下。
-
-	// 数学原理：
-	// Y轴负方向 = 270度 (或 -90度)
-	// 顺时针夹角 = (参考角度 - 目标角度) 
-	// 因为是顺时针，且范围限制在 [-90, 90]，我们可以利用垂直关系简化。
-
-	// 方法 A：直接几何计算
-	// 题目要求的角度 = (270 - minorAxisAngle) 
-	// 然后将结果映射到 [-90, 90]
-
-	double finalAngle = 270.0 - minorAxisAngle;
-	finalAngle = normalizeAngle(finalAngle);
-
-	// 映射到 [-90, 90]
-	if (finalAngle > 90) finalAngle -= 180;
-	if (finalAngle <= -90) finalAngle += 180;
-
-	// 方法 B：利用互补关系 (更简单)
-	// 因为题目定义的是“短轴”，而通常缺陷方向如果是“长轴”，公式是 (180 - majorAxisAngle) % 180 - 90。
-	// 但因为我们要的是短轴，且定义是 Y轴负向顺时针，我们可以直接用上面的计算结果。
-
-	cout << "最终计算出的缺陷角度: " << finalAngle << " degrees" << endl;
-
-	return 0;
-}
 
 template<typename T>
 float calcDirection(const std::vector<T>& pnts) {
@@ -368,7 +291,6 @@ float calcDirection(const std::vector<T>& pnts) {
 			OrientationXY += 180;
 		}
 	}
-	OrientationXY *= -1;
 	CV_Assert(OrientationXY >= -90 && OrientationXY <= 90);
 	return OrientationXY;
 }
@@ -388,7 +310,6 @@ int test_minAreaRect(std::string& str_err_reason)
 
 #endif
 	auto img = getImg(pnts);
-	test_ange(pnts);
 	float OrientationXY = 0.f;
 	auto rect = cv::minAreaRect(pnts);
 	if (std::abs(rect.angle - 90) < 0.0001)
@@ -419,7 +340,6 @@ int test_minAreaRect(std::string& str_err_reason)
 		else if (OrientationXY < -90) {
 			OrientationXY += 180;
 		}
-		OrientationXY *= -1;
 	}
 	std::cout << __FUNCTION__ << " | cv::minAreaRect, size:" << rect.size << ", angle:"  << rect.angle << ", center:" << rect.center << ", OrientationXY:" << OrientationXY << std::endl;
 
