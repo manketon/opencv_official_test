@@ -256,14 +256,10 @@ cv::Mat getImg(std::vector<cv::Point> pnts) {
 	}
 	return img;
 }
-int test_ange() {
+template<typename T>
+int test_ange(const vector<T>& points) {
 	// 1. 定义四个点 (注意：OpenCV的坐标通常是 (x, y)，对应 (col, row))
 	// 这里的坐标值很大，为了精度我们使用 float
-	vector<Point2f> points;
-	points.push_back(Point2f(100009, 100009));
-	points.push_back(Point2f(100021, 99982));
-	points.push_back(Point2f(100017, 99991));
-	points.push_back(Point2f(100013, 100000));
 
 	// 2. 计算最小包围矩形
 	RotatedRect rect = minAreaRect(points);
@@ -379,7 +375,7 @@ float calcDirection(const std::vector<T>& pnts) {
 
 int test_minAreaRect(std::string& str_err_reason)
 {
-	test_ange();
+
 #if 0
 	std::vector<cv::Point> pnts{ cv::Point(2, 2), cv::Point(2, 3), cv::Point(3, 2), /*cv::Point(3, 3),*/ };
 #else
@@ -392,6 +388,7 @@ int test_minAreaRect(std::string& str_err_reason)
 
 #endif
 	auto img = getImg(pnts);
+	test_ange(pnts);
 	float OrientationXY = 0.f;
 	auto rect = cv::minAreaRect(pnts);
 	if (std::abs(rect.angle - 90) < 0.0001)
