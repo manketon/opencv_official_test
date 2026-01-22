@@ -103,7 +103,7 @@ SInfo get_info(const T* pFirst, const T* pLast)
 	SInfo info;
 	const auto n = pLast - pFirst;
 	CV_Assert(n > 0);
- 	auto iter_median = pFirst + (n - 1) / 2;
+	auto iter_median = pFirst + (n - 1) / 2;
 	info.medianV = *iter_median;
 	info.meanV = std::accumulate(pFirst, pLast, 0.0) / n;
 	for (auto p = pFirst; p < pLast; ++p)
@@ -143,7 +143,7 @@ int show_img_info(const cv::Mat& img, const std::string& str_src_img_path, std::
 			std::cout << "\t\t区间[" << cutoff * 100 << "%:" << 100 * (1 - cutoff) << "%]的数据分布:" << info << std::endl;
 		}
 	}
-	
+
 	return 0;
 }
 
@@ -155,16 +155,16 @@ int test_imgs_statistical_informations(std::string& str_err_reason)
 	std::vector<std::string> vec_src_imgs_pathes;
 	cv::glob(str_src_imgs_dir + "/*.png", vec_src_imgs_pathes);
 
-// 	std::string str_bin_imgs_dir;
-// 	std::cout << "请输入二值图目录地址:";
-// 	std::cin >> str_bin_imgs_dir;
+	// 	std::string str_bin_imgs_dir;
+	// 	std::cout << "请输入二值图目录地址:";
+	// 	std::cin >> str_bin_imgs_dir;
 
-// 	std::map<std::string, std::string> map_srcImgName_binImgName;
-// 	map_srcImgName_binImgName.insert({"240625-1_650V_33_V1_4N46-FP02015_25_NUV-PL_IPP.png", "4N46-FP02015_NUV-PL_Defect_Binary_SD5.png"});
-// 	map_srcImgName_binImgName.insert({"240625-1_650V_33_V1_4N46-FP02015_25_QScO_IPP.png", "4N46-FP02015_QScO_Defect_Binary_SD2.png"});
-// 	map_srcImgName_binImgName.insert({ "240625-1_650V_33_V1_4N46-FP02015_25_QZrO_IPP.png", "4N46-FP02015_QZrO_Defect_Binary_SD3.png" });
-// 	map_srcImgName_binImgName.insert({ "240625-1_650V_33_V1_4N46-FP02015_25_ScN_IPP.png", "4N46-FP02015_ScN_Defect_Binary_SD1.png" });
-// 	map_srcImgName_binImgName.insert({ "240625-1_650V_33_V1_4N46-FP02015_25_VIS-PL_IPP.png", "4N46-FP02015_VIS-PL_Defect_Binary_SD4.png" });
+	// 	std::map<std::string, std::string> map_srcImgName_binImgName;
+	// 	map_srcImgName_binImgName.insert({"240625-1_650V_33_V1_4N46-FP02015_25_NUV-PL_IPP.png", "4N46-FP02015_NUV-PL_Defect_Binary_SD5.png"});
+	// 	map_srcImgName_binImgName.insert({"240625-1_650V_33_V1_4N46-FP02015_25_QScO_IPP.png", "4N46-FP02015_QScO_Defect_Binary_SD2.png"});
+	// 	map_srcImgName_binImgName.insert({ "240625-1_650V_33_V1_4N46-FP02015_25_QZrO_IPP.png", "4N46-FP02015_QZrO_Defect_Binary_SD3.png" });
+	// 	map_srcImgName_binImgName.insert({ "240625-1_650V_33_V1_4N46-FP02015_25_ScN_IPP.png", "4N46-FP02015_ScN_Defect_Binary_SD1.png" });
+	// 	map_srcImgName_binImgName.insert({ "240625-1_650V_33_V1_4N46-FP02015_25_VIS-PL_IPP.png", "4N46-FP02015_VIS-PL_Defect_Binary_SD4.png" });
 	for (const auto& str_src_img_path : vec_src_imgs_pathes)
 	{
 		const cv::Mat srcImg = cv::imread(str_src_img_path, cv::IMREAD_UNCHANGED);
@@ -176,12 +176,12 @@ int test_imgs_statistical_informations(std::string& str_err_reason)
 			std::cout << __FUNCTION__ << " | error, ret:" << ret << ", img path:" << str_src_img_path << std::endl;
 			return ret;
 		}
-// 		auto iter = map_srcImgName_binImgName.find(std::filesystem::path(str_src_img_path).filename().string());
-// 		CV_Assert(iter != map_srcImgName_binImgName.end());
-// 		auto str_bin_img_path = str_bin_imgs_dir + "/" + iter->second;
-// 		cv::Mat binImg = cv::imread(str_bin_img_path, cv::IMREAD_UNCHANGED);
-// 		CV_Assert(binImg.empty() == false);
-// 		binImg = binImg > 0;
+		// 		auto iter = map_srcImgName_binImgName.find(std::filesystem::path(str_src_img_path).filename().string());
+		// 		CV_Assert(iter != map_srcImgName_binImgName.end());
+		// 		auto str_bin_img_path = str_bin_imgs_dir + "/" + iter->second;
+		// 		cv::Mat binImg = cv::imread(str_bin_img_path, cv::IMREAD_UNCHANGED);
+		// 		CV_Assert(binImg.empty() == false);
+		// 		binImg = binImg > 0;
 	}
 	return 0;
 }
@@ -238,23 +238,100 @@ int test_towRows2oneRow(std::string& str_err_reason)
 
 cv::Mat getImg(std::vector<cv::Point> pnts) {
 	int maxX = pnts[0].x;
-    int maxY = pnts[0].y;
+	int maxY = pnts[0].y;
 	int minX = pnts[0].x;
-    int minY = pnts[0].y;
-    for (int i = 1; i < pnts.size(); i++)
-    {
-        maxX = std::max(maxX, pnts[i].x);
-        maxY = std::max(maxY, pnts[i].y);
-        minX = std::min(minX, pnts[i].x);
-        minY = std::min(minY, pnts[i].y);
-    }
+	int minY = pnts[0].y;
+	for (int i = 1; i < pnts.size(); i++)
+	{
+		maxX = std::max(maxX, pnts[i].x);
+		maxY = std::max(maxY, pnts[i].y);
+		minX = std::min(minX, pnts[i].x);
+		minY = std::min(minY, pnts[i].y);
+	}
 	int width = maxX - minX + 1;
-    int height = maxY - minY + 1;
-    cv::Mat img = cv::Mat::zeros(height, width, CV_8UC1);
-	for (const auto& pnt : pnts){
-        img.at<uchar>(pnt.y - minY, pnt.x - minX) = 255;
+	int height = maxY - minY + 1;
+	cv::Mat img = cv::Mat::zeros(height, width, CV_8UC1);
+	for (const auto& pnt : pnts) {
+		img.at<uchar>(pnt.y - minY, pnt.x - minX) = 255;
 	}
 	return img;
+}
+template<typename T>
+int test_ange(const vector<T>& points) {
+	// 1. 定义四个点 (注意：OpenCV的坐标通常是 (x, y)，对应 (col, row))
+	// 这里的坐标值很大，为了精度我们使用 float
+
+	// 2. 计算最小包围矩形
+	RotatedRect rect = minAreaRect(points);
+
+	// --- 调试输出 minAreaRect 的原始结果 ---
+	cout << "minAreaRect 原始中心: " << rect.center << endl;
+	cout << "minAreaRect 原始尺寸 (w, h): " << rect.size.width << ", " << rect.size.height << endl;
+	cout << "minAreaRect 原始角度 (与X轴夹角): " << rect.angle << " degrees" << endl;
+	// 对于这组共线点，angle 应该接近 -66 或 -24 左右，取决于它把哪条边定义为 width。
+
+	// 3. 第一步转换：确定长轴方向 (Major Axis)
+	// minAreaRect 的 angle 是 width 边的角度。
+	// 我们需要判断 width 和 height 哪个是长轴。
+	double majorAxisAngle;
+
+	if (rect.size.width > rect.size.height) {
+		// width 是长边，angle 直接就是长轴角度
+		majorAxisAngle = rect.angle;
+	}
+	else {
+		// height 是长边，长轴角度 = width边角度 + 90度
+		majorAxisAngle = rect.angle + 90.0;
+	}
+
+	// 4. 第二步转换：确定短轴方向 (Minor Axis)
+	// 短轴垂直于长轴。
+	// 注意：这里我们加 90 度或减 90 度都可以，因为短轴是双向的。
+	// 但为了符合 [-90, 90] 的范围习惯，我们通常选择较小的绝对值方向，或者直接计算后归一化。
+	// 这里我们简单地用长轴 + 90度。
+	double minorAxisAngle = majorAxisAngle + 90.0;
+
+	// --- 角度归一化辅助函数 (将角度限制在 [-180, 180] 或 [-90, 90]) ---
+	auto normalizeAngle = [](double angle) {
+		angle = fmod(angle, 360.0);
+		if (angle > 180) angle -= 360;
+		if (angle <= -180) angle += 360;
+		return angle;
+	};
+
+	minorAxisAngle = normalizeAngle(minorAxisAngle);
+
+	cout << "推导的长轴角度: " << majorAxisAngle << endl;
+	cout << "推导的短轴角度 (数学定义): " << minorAxisAngle << endl;
+
+	// 5. 第三步转换：计算题目要求的角度
+	// 定义：短轴与 Y轴负方向 的 顺时针 夹角。
+	// 范围：[-90, 90]
+	// 0度：向下。
+
+	// 数学原理：
+	// Y轴负方向 = 270度 (或 -90度)
+	// 顺时针夹角 = (参考角度 - 目标角度) 
+	// 因为是顺时针，且范围限制在 [-90, 90]，我们可以利用垂直关系简化。
+
+	// 方法 A：直接几何计算
+	// 题目要求的角度 = (270 - minorAxisAngle) 
+	// 然后将结果映射到 [-90, 90]
+
+	double finalAngle = 270.0 - minorAxisAngle;
+	finalAngle = normalizeAngle(finalAngle);
+
+	// 映射到 [-90, 90]
+	if (finalAngle > 90) finalAngle -= 180;
+	if (finalAngle <= -90) finalAngle += 180;
+
+	// 方法 B：利用互补关系 (更简单)
+	// 因为题目定义的是“短轴”，而通常缺陷方向如果是“长轴”，公式是 (180 - majorAxisAngle) % 180 - 90。
+	// 但因为我们要的是短轴，且定义是 Y轴负向顺时针，我们可以直接用上面的计算结果。
+
+	cout << "最终计算出的缺陷角度: " << finalAngle << " degrees" << endl;
+
+	return 0;
 }
 
 template<typename T>
@@ -291,6 +368,7 @@ float calcDirection(const std::vector<T>& pnts) {
 			OrientationXY += 180;
 		}
 	}
+	OrientationXY *= -1;
 	CV_Assert(OrientationXY >= -90 && OrientationXY <= 90);
 	return OrientationXY;
 }
@@ -301,15 +379,16 @@ int test_minAreaRect(std::string& str_err_reason)
 #if 0
 	std::vector<cv::Point> pnts{ cv::Point(2, 2), cv::Point(2, 3), cv::Point(3, 2), /*cv::Point(3, 3),*/ };
 #else
-// 	std::vector<cv::Point2f> pnts{ cv::Point2f(0.0412165783, 0.0911108851), cv::Point2f(12.3649731, 27.3332653),
-// 	cv::Point2f(8.24331570, 18.2221775), cv::Point2f(4.12165785, 9.11108875)
-// 	};
+	// 	std::vector<cv::Point2f> pnts{ cv::Point2f(0.0412165783, 0.0911108851), cv::Point2f(12.3649731, 27.3332653),
+	// 	cv::Point2f(8.24331570, 18.2221775), cv::Point2f(4.12165785, 9.11108875)
+	// 	};
 	std::vector<cv::Point> pnts{ cv::Point2f(100009, 100009), cv::Point2f(100021, 99982),
 	cv::Point2f(100017, 99991), cv::Point2f(100013, 100000)
 	};
 
 #endif
 	auto img = getImg(pnts);
+	test_ange(pnts);
 	float OrientationXY = 0.f;
 	auto rect = cv::minAreaRect(pnts);
 	if (std::abs(rect.angle - 90) < 0.0001)
@@ -340,8 +419,9 @@ int test_minAreaRect(std::string& str_err_reason)
 		else if (OrientationXY < -90) {
 			OrientationXY += 180;
 		}
+		OrientationXY *= -1;
 	}
-	std::cout << __FUNCTION__ << " | cv::minAreaRect, size:" << rect.size << ", angle:"  << rect.angle << ", center:" << rect.center << ", OrientationXY:" << OrientationXY << std::endl;
+	std::cout << __FUNCTION__ << " | cv::minAreaRect, size:" << rect.size << ", angle:" << rect.angle << ", center:" << rect.center << ", OrientationXY:" << OrientationXY << std::endl;
 
 	std::vector<cv::Point2f> corner_pnts(4);
 	rect.points(corner_pnts.data());
@@ -351,10 +431,10 @@ int test_minAreaRect(std::string& str_err_reason)
 	}
 	std::cout << std::endl;
 	OrientationXY = calcDirection(pnts);
-    std::cout << __FUNCTION__ << " | calcDirection, OrientationXY:" << OrientationXY << std::endl;
-// 	rect = cv::fitEllipse(pnts);
-// 	OrientationXY = rect.angle - 90;
-// 	std::cout << __FUNCTION__ << " | fitEllipse, size:" << rect.size << ", angle:" << rect.angle << ", center:" << rect.center << ", OrientationXY:" << OrientationXY << std::endl;
+	std::cout << __FUNCTION__ << " | calcDirection, OrientationXY:" << OrientationXY << std::endl;
+	// 	rect = cv::fitEllipse(pnts);
+	// 	OrientationXY = rect.angle - 90;
+	// 	std::cout << __FUNCTION__ << " | fitEllipse, size:" << rect.size << ", angle:" << rect.angle << ", center:" << rect.center << ", OrientationXY:" << OrientationXY << std::endl;
 	return 0;
 }
 
@@ -373,7 +453,7 @@ int test_convexhull(std::string& str_err_reason)
 		convexHull(contours[i], hull[i], false);
 	}
 
-	std::vector<std::vector<cv::Vec4i>> defects(contours.size()); 
+	std::vector<std::vector<cv::Vec4i>> defects(contours.size());
 	for (int i = 0; i < contours.size(); i++) {
 		if (hull[i].size() > 3) {
 			convexityDefects(contours[i], hull[i], defects[i]);
@@ -674,7 +754,7 @@ void elliptic_axis(const std::vector<T>& region, double& Ra, double& Rb, double&
 	auto M20_add_M02 = M20 + M02;
 	auto delta = std::sqrt((M20 - M02) * (M20 - M02) + 4 * M11 * M11);
 	const double tmp1 = 8 * (M20_add_M02 + delta);
-	Ra =  std::isgreaterequal(tmp1, 0.0)? std::sqrt(tmp1) / 2 : 0.0;
+	Ra = std::isgreaterequal(tmp1, 0.0) ? std::sqrt(tmp1) / 2 : 0.0;
 	const double tmp2 = 8 * (M20_add_M02 - delta);
 	Rb = std::isgreaterequal(tmp2, 0.0) ? std::sqrt(tmp2) / 2 : 0.0;
 }
@@ -716,11 +796,11 @@ void elliptic_axis_using_covMat(const std::vector<T>& region, double& Ra, double
 	//	angleMinorAxis += CV_PI;
 	//}
 	Phi = atan2(uv[1].y, uv[1].x); //atan2的取值范围为(-PI, PI]
-	if (Phi > CV_PI/2)
+	if (Phi > CV_PI / 2)
 	{
 		Phi -= CV_PI;
 	}
-	else if (Phi < -CV_PI/2)
+	else if (Phi < -CV_PI / 2)
 	{
 		Phi += CV_PI;
 	}
@@ -754,7 +834,7 @@ int test_elliptic_axis(std::string& str_err_reason)
 	std::cout << "Rb=" << Rb << std::endl;
 	std::cout << "theta=" << theta << std::endl;
 	Ra = 0.0, Rb = 0.0, theta = 0.0;
-	elliptic_axis_using_covMat (region, Ra, Rb, theta);
+	elliptic_axis_using_covMat(region, Ra, Rb, theta);
 	std::cout << "elliptic_axis_using_covMat result:" << std::endl;
 	std::cout << "Ra=" << Ra << std::endl;
 	std::cout << "Rb=" << Rb << std::endl;
@@ -770,7 +850,7 @@ int test_mean_and_std_of_rows(std::string& str_err_reason)
 	std::cin >> str_src_imgs_dir;
 	std::vector<std::string> vec_src_imgs_pathes;
 	cv::glob(str_src_imgs_dir + "/*.png", vec_src_imgs_pathes);
-	for (const std::string & str_src_img_path : vec_src_imgs_pathes)
+	for (const std::string& str_src_img_path : vec_src_imgs_pathes)
 	{
 		cv::Mat img = cv::imread(str_src_img_path, cv::IMREAD_UNCHANGED);
 		CV_Assert(img.empty() == false);
@@ -818,7 +898,7 @@ static ushort calc_special_median(const cv::Mat& img16u)
 	if (vec_fit_values.empty())
 	{
 		double sum = std::accumulate(vec_all_values.begin(), vec_all_values.end(), 0.0);
-		return static_cast<ushort>(sum/vec_all_values.size());
+		return static_cast<ushort>(sum / vec_all_values.size());
 	}
 	auto iter_median = vec_fit_values.begin() + ((vec_fit_values.size() - 1) >> 1);
 	std::nth_element(vec_fit_values.begin(), iter_median, vec_fit_values.end());
@@ -849,7 +929,7 @@ int test_HuaGeZi_and_calc_median(std::string& str_err_reason)
 		cv::circle(polarImgRemovedEdge, center, srcPolarImg.cols / 2, 0, 2 * nTrimmingLength_pixel);
 		std::filesystem::path path_src(str_src_img_path);
 		cv::imwrite(str_dst_imgs_dir + "/" + path_src.stem().string() + "_RemovedEdge.png", polarImgRemovedEdge);
-		cv::Mat medianImg(polarImgRemovedEdge.rows/nGrid_height, polarImgRemovedEdge.cols / nGrid_width, CV_16UC1, cv::Scalar::all(0));
+		cv::Mat medianImg(polarImgRemovedEdge.rows / nGrid_height, polarImgRemovedEdge.cols / nGrid_width, CV_16UC1, cv::Scalar::all(0));
 		for (int i = 0; i < medianImg.rows; ++i)
 		{
 			for (int j = 0; j < medianImg.cols; ++j)
@@ -932,7 +1012,7 @@ int test_generate_compilation_script(std::string& str_err_reason)
 	std::ofstream fout(str_dst_file_path);
 	CV_Assert(fout);
 	fout << "setlocal" << std::endl;
-	for (auto str_path : vec_pathes){
+	for (auto str_path : vec_pathes) {
 		const std::filesystem::path path_src(str_path); //使用$(Platform)代替x64，使用$(PlatformToolSet)代替v142，$(Configuration)代替Release/Debug
 		if (path_src.extension() == ".lib") {
 			//continue;
@@ -979,7 +1059,7 @@ int test_HoughLinesP(std::string& str_err_reason)
 		std::vector<cv::Vec4i> stitchedLines;
 		cv::TickMeter tm;
 		tm.start();
-		#pragma omp parallel for num_threads(nTotalThreads)
+#pragma omp parallel for num_threads(nTotalThreads)
 		for (int j = 0; j < 600000; ++j) {
 			std::vector<cv::Vec4i> houghLines;
 			const int tid = omp_get_thread_num();
@@ -995,8 +1075,8 @@ int test_HoughLinesP(std::string& str_err_reason)
 				maxLineGap,			//直线最大间隔
 				accum,
 				mask
-				);
-			#pragma omp critical
+			);
+#pragma omp critical
 			{
 				stitchedLines.insert(stitchedLines.end(), houghLines.begin(), houghLines.end());
 			}
@@ -1029,14 +1109,14 @@ int test_openMP_parallel_for(std::string& str_err_reason)
 		datas.emplace_back(i);
 	}
 
-	#pragma omp parallel for num_threads(nTotalThreads)
-	for (int i = 0; i < INT_MAX;++i) {
+#pragma omp parallel for num_threads(nTotalThreads)
+	for (int i = 0; i < INT_MAX; ++i) {
 		int thread_id = omp_get_thread_num();
 		datas[thread_id] += 3;
 		datas[thread_id] -= 3;
 	}
 	for (int i = 0; i < nTotalThreads; ++i) {
-		if (datas[i] != i){
+		if (datas[i] != i) {
 			std::cout << "datas[i]:" << datas[i] << " must == i:" << i << std::endl;
 			return -1;
 		}
@@ -1048,8 +1128,8 @@ int test_openMP_parallel_for(std::string& str_err_reason)
 int test_moment(std::string& str_err_reason)
 {
 	std::string str_src_bin_path = "D:/DevelopMent/LibLSR20_Optimized/testImg/only_one_region/one_region.png";
-// 	std::cout << "请输入二值图路径:";
-// 	std::cin >> str_src_bin_path;
+	// 	std::cout << "请输入二值图路径:";
+	// 	std::cin >> str_src_bin_path;
 	cv::Mat srcBin = cv::imread(str_src_bin_path, cv::IMREAD_UNCHANGED);
 	CV_Assert(srcBin.empty() == false && srcBin.type() == CV_8UC1);
 	calc_moment_1(srcBin);
