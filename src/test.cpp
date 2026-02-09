@@ -1142,6 +1142,39 @@ int test_openMP_parallel_for(std::string& str_err_reason)
 	return 0;
 }
 
+int test_slice_img(std::string& str_err_reason)
+{
+	std::string str_src_img_path;
+    std::cout << "请输入源图片路径:";
+    std::cin >> str_src_img_path;
+    cv::Mat srcImg = cv::imread(str_src_img_path, cv::IMREAD_UNCHANGED);
+	CV_Assert(!srcImg.empty());
+	std::filesystem::path path_src(str_src_img_path);
+	std::string dstDir = path_src.parent_path().string() + "/" + path_src.stem().string();
+	//目录不存在，则新建
+    if (!std::filesystem::exists(dstDir)) {
+        std::filesystem::create_directory(dstDir);
+    }
+	const int XStep = srcImg.cols / 2;
+	const int YStep = srcImg.rows / 2;
+    for (int i = 0; i < srcImg.rows; i += YStep) { 
+		for (int j = 0; j < srcImg.cols; j += XStep) {
+            cv::Rect rect(j, i, XStep, YStep);
+			if (j + rect.width >= srcImg.cols){
+                rect.width = srcImg.cols - j;
+			}
+			if (i + rect.height >= srcImg.rows){
+                rect.height = srcImg.rows - i;
+			}
+            cv::Mat dstImg = srcImg(rect);
+            std::string str_dst_img_path = dstDir + "/" + path_src.stem().string() + "_" + std::to_string(i) + "_" + std::to_string(j) + ".png";
+            cv::imwrite(str_dst_img_path, dstImg);
+            std::cout << "Save img to:" << str_dst_img_path << std::endl;
+        }
+    }
+	return 0;
+}
+
 int test_moment(std::string& str_err_reason)
 {
 	std::string str_src_bin_path = "D:/DevelopMent/LibLSR20_Optimized/testImg/only_one_region/one_region.png";

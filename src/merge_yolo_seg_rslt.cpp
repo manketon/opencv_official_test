@@ -289,7 +289,7 @@ std::vector<std::tuple<cv::Mat, cv::Point>> sliceLargeImage(const cv::Mat& large
 	return subgraphs;
 }
 
-//合并大图中YOLO-seg的检测结果
+//合并大图中YOLO-seg的检测结果（由豆包生成）
 int test_merge_yolo_seg_rslts() {
 	//TODO::尽管能够跑通，但是结果与预期不符。 
 	// 1. 模拟32768×32768大图
