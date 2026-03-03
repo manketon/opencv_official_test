@@ -39,6 +39,7 @@ int main(int argc, char* argv[])
 		std::cout << "21、测试openMP parallel for" << std::endl;
 		std::cout << "22、测试合并YOLO-seg的结果（由豆包生成）" << std::endl;
 		std::cout << "23、将图片4等分并保存" << std::endl;
+		std::cout << "24、测试遍历无向图" << std::endl;
 		std::cout << "请输入您的选择:"; 
 		int nChoise = -1;
 		std::cin >> nChoise;
@@ -117,6 +118,9 @@ int main(int argc, char* argv[])
 			break;
 		case 23:
 			ret = test_slice_img(str_err_reason);
+			break;
+		case 24:
+			ret = test_visit_graph(str_err_reason);
 			break;
 		default:
 			std::cout << "非法输入" << std::endl;

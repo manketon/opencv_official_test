@@ -20,6 +20,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="decompose_homography.cpp" />
+    <ClCompile Include="graph.cpp" />
     <ClCompile Include="hough.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="merge_yolo_seg_rslt.cpp" />

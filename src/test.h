@@ -68,3 +68,5 @@ int test_merge_yolo_seg_rslts();
 
 //将图片划分为多个小图片
 int test_slice_img(std::string& str_err_reason);
+
+int test_visit_graph(std::string& str_err_reason);
