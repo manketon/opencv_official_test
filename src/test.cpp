@@ -1167,7 +1167,7 @@ int test_slice_img(std::string& str_err_reason)
                 rect.height = srcImg.rows - i;
 			}
             cv::Mat dstImg = srcImg(rect);
-            std::string str_dst_img_path = dstDir + "/" + path_src.stem().string() + "_" + std::to_string(i) + "_" + std::to_string(j) + ".png";
+            std::string str_dst_img_path = dstDir + "/" + std::to_string(i) + "_" + std::to_string(j) + ".png";
             cv::imwrite(str_dst_img_path, dstImg);
             std::cout << "Save img to:" << str_dst_img_path << std::endl;
         }
