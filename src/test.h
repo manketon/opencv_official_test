@@ -8,7 +8,7 @@
 #pragma once
 #include <string>
 #ifndef DEBUG_IMGS_DIR
-#define RESULT_IMAGES_DIR ("./result_imgs/")
+#define RESULT_IMAGES_DIR ("../result_imgs/")
 #endif // DEBUG_IMGS_DIR
 /**
  * @brief  

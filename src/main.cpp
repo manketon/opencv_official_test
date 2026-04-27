@@ -7,8 +7,6 @@
 #include <opencv2/core/cvdef.h>
 int main(int argc, char* argv[])
 {
-	float angle = -90.f;
-	float a = std::cos(angle*CV_PI/180);
 	if (!std::filesystem::exists(RESULT_IMAGES_DIR))
 	{
 		std::filesystem::create_directories(RESULT_IMAGES_DIR);

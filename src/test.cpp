@@ -491,6 +491,11 @@ int test_HoughLines(std::string& str_err_reason)
 	std::cin >> str_src_bin_path;
 	cv::Mat srcBin = cv::imread(str_src_bin_path, cv::IMREAD_UNCHANGED);
 	CV_Assert(srcBin.empty() == false && srcBin.type() == CV_8UC1);
+	const std::string dstDir = std::string(RESULT_IMAGES_DIR) + "/houghLines/";
+	if (!std::filesystem::exists(dstDir))
+	{
+		std::filesystem::create_directories(dstDir);
+	}
 	std::filesystem::path path_src(str_src_bin_path);
 	//霍夫变换（注意：霍夫变换可能会改变源二值图）
 	vector<Vec2f> lines;
@@ -520,7 +525,7 @@ int test_HoughLines(std::string& str_err_reason)
 		std::vector<cv::Mat> vec_channels{ srcBin, dst, srcBin };
 		cv::Mat result;
 		cv::merge(vec_channels, result);
-		std::string str_dst_path = std::string(RESULT_IMAGES_DIR) + "/" + path_src.stem().string() + "_houghLines.png";
+		std::string str_dst_path = dstDir + "/" + path_src.stem().string() + "_houghLines.png";
 		CV_Assert(cv::imwrite(str_dst_path, result));
 	}
 
@@ -544,7 +549,7 @@ int test_HoughLines(std::string& str_err_reason)
 		std::vector<cv::Mat> vec_channels{ srcBin, dstP, srcBin };
 		cv::Mat rsult_P;
 		cv::merge(vec_channels, rsult_P);
-		std::string str_dstP_path = std::string(RESULT_IMAGES_DIR) + "/" + path_src.stem().string() + "_houghLinesP.png";
+		std::string str_dstP_path = dstDir + "/" + path_src.stem().string() + "_houghLinesP.png";
 		CV_Assert(cv::imwrite(str_dstP_path, rsult_P));
 	}
 	return 0;

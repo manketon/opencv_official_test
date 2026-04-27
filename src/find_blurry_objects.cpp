@@ -7,6 +7,7 @@
 #include <cmath>
 #include <opencv2/imgproc.hpp>
 #include <opencv2/imgcodecs.hpp>
+#include "test.h"
 
 using namespace std;
 namespace fs = std::filesystem;
@@ -73,8 +74,9 @@ int test_find_blurry_objects()
 {
     // ========== 参数（与 MATLAB 中对应） ==========
     string big_image_path = R"(C:\Users\LM\Desktop\1\5B_WD FA Sample 5B_01_1_QZrO_IPP.png)";
-    string subimg_dir = "SubImages";
-    string result_dir = "ProcessedResults";
+	const std::string dstDir = std::string(RESULT_IMAGES_DIR) + "/find_blurry_objects/";
+    string subimg_dir = dstDir + "SubImages";
+    string result_dir = dstDir + "ProcessedResults";
     const int subimg_w = 2048;
     const int subimg_h = 482;
 
@@ -128,7 +130,7 @@ int test_find_blurry_objects()
     double sub_radius_range = static_cast<double>(subimg_h) * pixel_size_radial;
 
     // 打开 CSV 映射表
-    std::ofstream fid("subimage_mapping.csv");
+    std::ofstream fid(dstDir + "/subimage_mapping.csv");
     fid << "序号,角度索引,半径索引,角度范围(deg),半径范围(um)\n";
 
     // 切割并保存子图（物理坐标命名）
