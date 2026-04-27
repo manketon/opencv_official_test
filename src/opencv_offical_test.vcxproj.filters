@@ -72,6 +72,9 @@
     <ClCompile Include="graph.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="find_blurry_objects.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="test.h">

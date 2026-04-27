@@ -20,6 +20,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="decompose_homography.cpp" />
+    <ClCompile Include="find_blurry_objects.cpp" />
     <ClCompile Include="graph.cpp" />
     <ClCompile Include="hough.cpp" />
     <ClCompile Include="main.cpp" />
