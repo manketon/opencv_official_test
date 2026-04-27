@@ -50,9 +50,14 @@ static cv::Mat processSubImage(const cv::Mat& img_in, int window_size, double sc
     cv::Mat img_smooth;
     cv::filter2D(img_correct, img_smooth, -1, kernel, cv::Point(-1, -1), 0.0, cv::BORDER_REPLICATE);
 
-    // 双三次下采样（bicubic）按 scale
+    // ---- 修改点：显式按 MATLAB 风格计算目标尺寸（向上取整），以避免 cv::resize 的四舍五入差异 ----
+    int new_rows = static_cast<int>(std::ceil(m * scale));
+    int new_cols = static_cast<int>(std::ceil(n * scale));
+    // 保证至少为 1
+    new_rows = std::max(1, new_rows);
+    new_cols = std::max(1, new_cols);
     cv::Mat img_down;
-    cv::resize(img_smooth, img_down, cv::Size(), scale, scale, cv::INTER_CUBIC);
+    cv::resize(img_smooth, img_down, cv::Size(new_cols, new_rows), 0.0, 0.0, cv::INTER_CUBIC);
 
     // 裁剪到 [0,65535] 并转换为 uint16
     cv::Mat tmp;
@@ -193,14 +198,14 @@ int test_find_blurry_objects()
                 continue;
             }
 
-            cv::Mat proc = processSubImage(img, window_size, scale);
+            cv::Mat img_down_uint16 = processSubImage(img, window_size, scale);
 
             char outname[256];
             std::snprintf(outname, sizeof(outname), "proc_%04d_ang%.1f_r%.0f.png",
                 idx, angle_start_val, radius_start_val);
             fs::path outfile = fs::path(result_dir) / outname;
 
-            if (!cv::imwrite(outfile.string(), proc)) {
+            if (!cv::imwrite(outfile.string(), img_down_uint16)) {
                 cerr << "保存处理结果失败: " << outfile.string() << endl;
             }
         }
