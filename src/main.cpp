@@ -39,7 +39,8 @@ int main(int argc, char* argv[])
 		std::cout << "23、将图片4等分并保存" << std::endl;
 		std::cout << "24、测试遍历无向图" << std::endl;
 		std::cout << "25、测试提取不明显缺陷" << std::endl;
-		std::cout << "请输入您的选择:"; 
+		std::cout << "26、测试cv::minAreaRect中的异常情况" << std::endl;
+		std::cout << "请输入您的选择:";
 		int nChoise = -1;
 		std::cin >> nChoise;
 		int ret = -1;
@@ -123,6 +124,9 @@ int main(int argc, char* argv[])
 			break;
 		case 25:
 			ret = test_find_blurry_objects();
+			break;
+		case 26:
+			ret = test_minAreaRect_err(str_err_reason);
 			break;
 		default:
 			std::cout << "非法输入" << std::endl;

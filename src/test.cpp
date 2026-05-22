@@ -8,6 +8,7 @@
 #include "hough.hpp"
 #include <omp.h>
 #include <cmath>
+#include "minAreaRectExt.h"
 using namespace cv;
 using namespace std;
 // 替换字符串中所有 from 为 to
@@ -71,7 +72,6 @@ struct SInfo
 {
 	SInfo()
 	{
-
 	}
 	double meanV = 0.0;
 	double medianV = 0.0;
@@ -311,11 +311,11 @@ int test_ange(const vector<T>& points) {
 
 	// 数学原理：
 	// Y轴负方向 = 270度 (或 -90度)
-	// 顺时针夹角 = (参考角度 - 目标角度) 
+	// 顺时针夹角 = (参考角度 - 目标角度)
 	// 因为是顺时针，且范围限制在 [-90, 90]，我们可以利用垂直关系简化。
 
 	// 方法 A：直接几何计算
-	// 题目要求的角度 = (270 - minorAxisAngle) 
+	// 题目要求的角度 = (270 - minorAxisAngle)
 	// 然后将结果映射到 [-90, 90]
 
 	double finalAngle = 270.0 - minorAxisAngle;
@@ -348,7 +348,6 @@ float calcDirection(const std::vector<T>& pnts) {
 		{
 			OrientationXY = -90;
 		}
-
 	}
 	else
 	{
@@ -375,7 +374,6 @@ float calcDirection(const std::vector<T>& pnts) {
 
 int test_minAreaRect(std::string& str_err_reason)
 {
-
 #if 0
 	std::vector<cv::Point> pnts{ cv::Point(2, 2), cv::Point(2, 3), cv::Point(3, 2), /*cv::Point(3, 3),*/ };
 #else
@@ -535,7 +533,7 @@ int test_HoughLines(std::string& str_err_reason)
 	HoughLinesP(srcBin,	//输入图
 		linesP,			//线条结果
 		1,				//rho = 1
-		CV_PI / 180,	//theta = 1弧度制	
+		CV_PI / 180,	//theta = 1弧度制
 		50,				//votes阈值
 		50,				//直线最短长度
 		20);			//直线最大间隔
@@ -606,29 +604,28 @@ int test_find_different_pnts(std::string& str_err_reason)
 }
 
 // void calculateOrientationBasedPCA(const std::vector<cv::Point>& contour) {
-// 	if (contour.size() < 5) return; // fitEllipse需要至少5个点  
-// 
-// 	// 使用PCA计算主方向  
+// 	if (contour.size() < 5) return; // fitEllipse需要至少5个点
+//
+// 	// 使用PCA计算主方向
 // 	cv::PCA pca(contour, cv::Mat(), cv::PCA::DATA_AS_ROW);
-// 	cv::Vec2f direction = pca.eigenvectors.at<float>(0); // 主成分方向  
-// 
+// 	cv::Vec2f direction = pca.eigenvectors.at<float>(0); // 主成分方向
+//
 // 	// 计算角度
-// 	float angle = atan2(direction[1], direction[0]) * 180.0 / CV_PI; // 将弧度转换为度  
+// 	float angle = atan2(direction[1], direction[0]) * 180.0 / CV_PI; // 将弧度转换为度
 // 	std::cout << "Principal Direction Angle: " << angle << std::endl;
-// 
-// 	// 可视化方向 (可选)  
+//
+// 	// 可视化方向 (可选)
 // 	cv::Point2f mean(pca.mean.at<double>(0), pca.mean.at<double>(1));
 // 	cv::Point2f endpoint(mean.x + direction[0] * 50, mean.y + direction[1] * 50);
-// 	// 在图像上绘制  
+// 	// 在图像上绘制
 // 	cv::Mat output;
 // 	cv::cvtColor(inputImage, output, cv::COLOR_GRAY2BGR);
 // 	cv::line(output, mean, endpoint, cv::Scalar(255, 0, 0), 2);
 // 	cv::circle(output, mean, 5, cv::Scalar(0, 255, 0), -1);
 // }
 
-
 void calculateOrientationUsingPCA(const std::vector<cv::Point>& contour) {
-	// 将轮廓点转为Mat格式，并转换为浮点数  
+	// 将轮廓点转为Mat格式，并转换为浮点数
 	cv::Mat data(contour.size(), 2, CV_32FC1);
 	for (int i = 0; i < contour.size(); ++i)
 	{
@@ -637,16 +634,16 @@ void calculateOrientationUsingPCA(const std::vector<cv::Point>& contour) {
 		pSrc_row[1] = contour[i].y;
 	}
 
-	// 计算PCA  
+	// 计算PCA
 	cv::PCA pca(data, cv::Mat(), cv::PCA::DATA_AS_ROW);
 
-	// 主成分方向  
+	// 主成分方向
 	cv::Vec2f eigenvector = pca.eigenvectors.at<cv::Vec2f>(0);
 
-	// 计算主方向的角度  
+	// 计算主方向的角度
 	double angle = std::atan2(eigenvector[1], eigenvector[0]) * 180.0 / CV_PI;
 
-	// 轮廓中心  
+	// 轮廓中心
 	cv::Point2f center(pca.mean.at<double>(0), pca.mean.at<double>(1));
 
 	std::cout << "中心: (" << center.x << ", " << center.y << "), 方向: " << angle << " degrees" << std::endl;
@@ -654,20 +651,20 @@ void calculateOrientationUsingPCA(const std::vector<cv::Point>& contour) {
 
 //基于轮廓矩来计算轮廓方向
 void calculateOrientationBasedMoments(const std::vector<cv::Point>& contour) {
-	// 计算轮廓的矩  
+	// 计算轮廓的矩
 	cv::Moments m = cv::moments(contour, false);
 
-	double cx = m.m10 / m.m00; // 轮廓的中心 x 坐标  
-	double cy = m.m01 / m.m00; // 轮廓的中心 y 坐标  
+	double cx = m.m10 / m.m00; // 轮廓的中心 x 坐标
+	double cy = m.m01 / m.m00; // 轮廓的中心 y 坐标
 
-	double mu20 = m.mu20; // 二阶矩  
-	double mu11 = m.mu11; // 混合矩  
-	double mu02 = m.mu02; // 二次矩  
+	double mu20 = m.mu20; // 二阶矩
+	double mu11 = m.mu11; // 混合矩
+	double mu02 = m.mu02; // 二次矩
 
-	// 计算方向角  
+	// 计算方向角
 	double theta = 0.5 * atan2(2 * mu11, mu20 - mu02); //atan2的返回值范围:(-PI, PI]
 
-	// 方向以度为单位  
+	// 方向以度为单位
 	double angle = theta * 180.0 / CV_PI;
 
 	std::cout << "中心: (" << cx << ", " << cy << "), 方向: " << angle << " degrees" << std::endl;
@@ -680,11 +677,11 @@ int test_calc_direction_based_(std::string& str_err_reason)
 	std::cin >> str_src_bin_path;
 	cv::Mat srcBin = cv::imread(str_src_bin_path, cv::IMREAD_UNCHANGED);
 	CV_Assert(srcBin.empty() == false && srcBin.type() == CV_8UC1);
-	// 查找轮廓  
+	// 查找轮廓
 	std::vector<std::vector<cv::Point>> contours;
 	cv::findContours(srcBin, contours, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
 
-	// 遍历每个轮廓，计算并输出方向  
+	// 遍历每个轮廓，计算并输出方向
 	for (const auto& contour : contours) {
 		calculateOrientationBasedMoments(contour);
 	}
@@ -695,15 +692,15 @@ void calc_moment_2(const std::vector<cv::Point>& contour)
 {
 	const auto m = cv::moments(contour, false);
 	double area = m.m00; // 轮廓的面积
-	 // 计算质心  
+	 // 计算质心
 	Point2d center(m.m10 / area, m.m01 / area);
 
-	// 计算主轴  
-	double mu20 = m.m20 / area; // 归一化的矩  
-	double mu02 = m.m02 / area; // 归一化的矩  
-	double mu11 = m.m11 / area; // 归一化的矩  
+	// 计算主轴
+	double mu20 = m.m20 / area; // 归一化的矩
+	double mu02 = m.m02 / area; // 归一化的矩
+	double mu11 = m.m11 / area; // 归一化的矩
 
-	// 计算特征值  
+	// 计算特征值
 	double nu20 = mu20 / (area * area);
 	double nu02 = mu02 / (area * area);
 	double nu11 = mu11 / (area * area);
@@ -713,12 +710,12 @@ void calc_moment_2(const std::vector<cv::Point>& contour)
 void calc_moment_1(cv::InputArray _src)
 {
 	const auto m = cv::moments(_src, true);
-	// 计算二阶矩  
+	// 计算二阶矩
 	double mu20 = m.mu20;
 	double mu11 = m.mu11;
 	double mu02 = m.mu02;
 	//TODO::目前长短轴和halcon::elliptic_axis还是有差别的，后面复现halcon::moments_region_2nd
-	// 计算主方向和特征值  
+	// 计算主方向和特征值
 	double theta = -0.5 * atan2(2 * mu11, mu20 - mu02);
 	double length_a = sqrt(2 * (mu20 + mu02 + sqrt((mu20 - mu02) * (mu20 - mu02) + 4 * mu11 * mu11))); //halcon中为8
 	double length_b = sqrt(2 * (mu20 + mu02 - sqrt((mu20 - mu02) * (mu20 - mu02) + 4 * mu11 * mu11))); //halcon中为8
@@ -770,7 +767,7 @@ void elliptic_axis(const std::vector<T>& region, const bool YAxisIsDownward, dou
 	Ra = std::isgreaterequal(tmp1, 0.0) ? std::sqrt(tmp1) / 2 : 0.0;
 	const double tmp2 = 8 * (M20_add_M02 - delta);
 	Rb = std::isgreaterequal(tmp2, 0.0) ? std::sqrt(tmp2) / 2 : 0.0;
-	if (!YAxisIsDownward){
+	if (!YAxisIsDownward) {
 		Phi *= -1;
 	}
 }
@@ -864,7 +861,6 @@ int test_elliptic_axis(std::string& str_err_reason)
 	return 0;
 }
 
-
 int test_mean_and_std_of_rows(std::string& str_err_reason)
 {
 	std::string str_src_imgs_dir;
@@ -896,7 +892,7 @@ int test_mean_and_std_of_rows(std::string& str_err_reason)
 
 double round(double value, int n)
 {
-	double scale = std::pow(10.0, n); // 计算 10 的 n 次方  
+	double scale = std::pow(10.0, n); // 计算 10 的 n 次方
 	return std::round(value * scale) / scale; // 先乘以 scale 再四舍五入
 }
 static ushort calc_special_median(const cv::Mat& img16u)
@@ -1091,7 +1087,7 @@ int test_HoughLinesP(std::string& str_err_reason)
 			nsYRP::HoughLinesP(srcBin,	//输入图，可能会被修改
 				houghLines,			//线条结果
 				1,				//rho = 1
-				CV_PI / 180,	//theta = 1弧度制	
+				CV_PI / 180,	//theta = 1弧度制
 				Votes_Lower_Limit,				//votes阈值
 				minLineLength,				//直线最短长度
 				maxLineGap,			//直线最大间隔
@@ -1150,33 +1146,72 @@ int test_openMP_parallel_for(std::string& str_err_reason)
 int test_slice_img(std::string& str_err_reason)
 {
 	std::string str_src_img_path;
-    std::cout << "请输入源图片路径:";
-    std::cin >> str_src_img_path;
-    cv::Mat srcImg = cv::imread(str_src_img_path, cv::IMREAD_UNCHANGED);
+	std::cout << "请输入源图片路径:";
+	std::cin >> str_src_img_path;
+	cv::Mat srcImg = cv::imread(str_src_img_path, cv::IMREAD_UNCHANGED);
 	CV_Assert(!srcImg.empty());
 	std::filesystem::path path_src(str_src_img_path);
 	std::string dstDir = path_src.parent_path().string() + "/" + path_src.stem().string();
 	//目录不存在，则新建
-    if (!std::filesystem::exists(dstDir)) {
-        std::filesystem::create_directory(dstDir);
-    }
+	if (!std::filesystem::exists(dstDir)) {
+		std::filesystem::create_directory(dstDir);
+	}
 	const int XStep = srcImg.cols / 2;
 	const int YStep = srcImg.rows / 2;
-    for (int i = 0; i < srcImg.rows; i += YStep) { 
+	for (int i = 0; i < srcImg.rows; i += YStep) {
 		for (int j = 0; j < srcImg.cols; j += XStep) {
-            cv::Rect rect(j, i, XStep, YStep);
-			if (j + rect.width >= srcImg.cols){
-                rect.width = srcImg.cols - j;
+			cv::Rect rect(j, i, XStep, YStep);
+			if (j + rect.width >= srcImg.cols) {
+				rect.width = srcImg.cols - j;
 			}
-			if (i + rect.height >= srcImg.rows){
-                rect.height = srcImg.rows - i;
+			if (i + rect.height >= srcImg.rows) {
+				rect.height = srcImg.rows - i;
 			}
-            cv::Mat dstImg = srcImg(rect);
-            std::string str_dst_img_path = dstDir + "/" + std::to_string(i) + "_" + std::to_string(j) + ".png";
-            cv::imwrite(str_dst_img_path, dstImg);
-            std::cout << "Save img to:" << str_dst_img_path << std::endl;
-        }
-    }
+			cv::Mat dstImg = srcImg(rect);
+			std::string str_dst_img_path = dstDir + "/" + std::to_string(i) + "_" + std::to_string(j) + ".png";
+			cv::imwrite(str_dst_img_path, dstImg);
+			std::cout << "Save img to:" << str_dst_img_path << std::endl;
+		}
+	}
+	return 0;
+}
+
+int test_minAreaRect_err(std::string& err)
+{
+	std::vector<cv::Point> pnts;
+#if 1
+	pnts.emplace_back(16369, 400);
+	pnts.emplace_back(16368, 401);
+	pnts.emplace_back(16369, 401);
+	pnts.emplace_back(16367, 401);
+	pnts.emplace_back(16369, 399);
+	pnts.emplace_back(16369, 398);
+	pnts.emplace_back(16369, 397);
+#else
+	pnts.emplace_back(16369, 397);
+	pnts.emplace_back(16369, 398);
+	pnts.emplace_back(16369, 399);
+	pnts.emplace_back(16369, 400);
+	pnts.emplace_back(16368, 401);
+	pnts.emplace_back(16369, 401);
+	pnts.emplace_back(16367, 401);
+#endif
+	cv::Rect roi = cv::boundingRect(pnts);
+	cv::Mat subImg = cv::Mat::zeros(roi.size(), CV_8UC1);
+	for (const auto& pnt : pnts) {
+		subImg.at<uchar>(pnt - roi.tl()) = 255;
+	}
+	auto rRect = minAreaRectExt(pnts);
+	std::cout << "angle:" << rRect.angle << ", center:" << rRect.center << ", size:" << rRect.size << std::endl;
+	cv::InputArray ia(pnts);
+	cv::Mat img = ia.getMat();
+	std::vector<cv::Point> hull;
+	cv::convexHull(ia, hull, false, true);
+
+	for (const auto& pnt : hull) {
+		std::cout << pnt << ", ";
+	}
+	std::cout << std::endl;
 	return 0;
 }
 
@@ -1191,7 +1226,7 @@ int test_moment(std::string& str_err_reason)
 	std::vector<cv::Point> region;
 	cv::findNonZero(srcBin, region);
 	calc_moment_2(region);
-	// 查找轮廓  
+	// 查找轮廓
 	vector<vector<Point>> contours;
 	vector<Vec4i> hierarchy;
 	findContours(srcBin, contours, hierarchy, RETR_EXTERNAL, CHAIN_APPROX_SIMPLE);

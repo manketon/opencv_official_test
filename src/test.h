@@ -10,9 +10,9 @@
 #ifndef DEBUG_IMGS_DIR
 #define RESULT_IMAGES_DIR ("../result_imgs/")
 #endif // DEBUG_IMGS_DIR
-/**
- * @brief  
- */
+ /**
+  * @brief
+  */
 int test_decompose_homography(int argc, char* argv[]);
 
 int test_Sobel(int argc, char** argv);
@@ -51,7 +51,6 @@ int test_mean_and_std_of_rows(std::string& str_err_reason);
 double round(double value, int n);
 int test_HuaGeZi_and_calc_median(std::string& str_err_reason);
 
-
 int test_getOnlyImgData();
 
 int test_resize_images(std::string& str_err_reason);
@@ -63,7 +62,6 @@ int test_HoughLinesP(std::string& str_err_reason);
 
 int test_openMP_parallel_for(std::string& str_err_reason);
 
-
 int test_merge_yolo_seg_rslts();
 
 //将图片划分为多个小图片
@@ -73,3 +71,5 @@ int test_visit_graph(std::string& str_err_reason);
 
 //寻找模糊物体
 int test_find_blurry_objects();
+
+int test_minAreaRect_err(std::string& err);

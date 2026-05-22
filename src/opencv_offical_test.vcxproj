@@ -25,6 +25,7 @@
     <ClCompile Include="hough.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="merge_yolo_seg_rslt.cpp" />
+    <ClCompile Include="minAreaRectExt.cpp" />
     <ClCompile Include="opencl_kernels_imgproc.cpp" />
     <ClCompile Include="samples\cpp\demhist.cpp" />
     <ClCompile Include="samples\cpp\skeletonize.cpp" />
@@ -40,6 +41,7 @@
   <ItemGroup>
     <ClInclude Include="convolution.h" />
     <ClInclude Include="hough.hpp" />
+    <ClInclude Include="minAreaRectExt.h" />
     <ClInclude Include="opencl_kernels_imgproc.hpp" />
     <ClInclude Include="samples\cpp\common.h" />
     <ClInclude Include="test.h" />
