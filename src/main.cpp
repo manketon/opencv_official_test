@@ -40,6 +40,7 @@ int main(int argc, char* argv[])
 		std::cout << "24、测试遍历无向图" << std::endl;
 		std::cout << "25、测试提取不明显缺陷" << std::endl;
 		std::cout << "26、测试cv::minAreaRect中的异常情况" << std::endl;
+		std::cout << "27、读写info到png文件头" << std::endl;
 		std::cout << "请输入您的选择:";
 		int nChoise = -1;
 		std::cin >> nChoise;
@@ -128,6 +129,8 @@ int main(int argc, char* argv[])
 		case 26:
 			ret = test_minAreaRect_err(str_err_reason);
 			break;
+		case 27:
+			ret = test_write_info_to_png();
 		default:
 			std::cout << "非法输入" << std::endl;
 			continue;

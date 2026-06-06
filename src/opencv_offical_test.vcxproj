@@ -27,6 +27,7 @@
     <ClCompile Include="merge_yolo_seg_rslt.cpp" />
     <ClCompile Include="minAreaRectExt.cpp" />
     <ClCompile Include="opencl_kernels_imgproc.cpp" />
+    <ClCompile Include="rwpng.cpp" />
     <ClCompile Include="samples\cpp\demhist.cpp" />
     <ClCompile Include="samples\cpp\skeletonize.cpp" />
     <ClCompile Include="samples\cpp\stegerImpl.cpp" />
