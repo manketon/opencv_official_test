@@ -325,7 +325,7 @@ static void reorderConvexHullPoints(cv::Mat& hull)
 	// 凸包Mat格式：N行1列，元素 Point / Point2i
 	int ptsNum = hull.rows;
 	int minYIdx = 0;
-	int minY = hull.at<cv::Point2f>(0).y;
+	int minY = static_cast<int>(hull.at<cv::Point2f>(0).y);
 
 	// 查找y最小点下标
 	for (int i = 1; i < ptsNum; ++i)
@@ -348,7 +348,7 @@ static void reorderConvexHullPoints(cv::Mat& hull)
 		tempPts.push_back(hull.at<cv::Point2f>(i));
 
 	// 重新写回Mat
-	hull.create(tempPts.size(), 1, CV_32SC2);
+	hull.create(static_cast<int>(tempPts.size()), 1, CV_32SC2);
 	for (int i = 0; i < tempPts.size(); ++i)
 		hull.at<cv::Point2f>(i) = tempPts[i];
 }
