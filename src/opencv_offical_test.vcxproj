@@ -38,6 +38,7 @@
     <ClCompile Include="Sobel_Demo.cpp" />
     <ClCompile Include="test.cpp" />
     <ClCompile Include="test_cpp.cpp" />
+    <ClCompile Include="test_wrinkle.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="convolution.h" />
@@ -184,6 +185,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>fftw3.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
