@@ -75,3 +75,5 @@ int test_find_blurry_objects();
 int test_minAreaRect_err(std::string& err);
 
 int test_write_info_to_png();
+
+int test_wrinkle();

@@ -41,6 +41,7 @@ int main(int argc, char* argv[])
 		std::cout << "25、测试提取不明显缺陷" << std::endl;
 		std::cout << "26、测试cv::minAreaRect中的异常情况" << std::endl;
 		std::cout << "27、读写info到png文件头" << std::endl;
+		std::cout << "28、测试褶皱（wrinkle）滤波算法" << std::endl;
 		std::cout << "请输入您的选择:";
 		int nChoise = -1;
 		std::cin >> nChoise;
@@ -131,6 +132,10 @@ int main(int argc, char* argv[])
 			break;
 		case 27:
 			ret = test_write_info_to_png();
+			break;
+		case 28:
+			ret = test_wrinkle();
+			break;
 		default:
 			std::cout << "非法输入" << std::endl;
 			continue;
