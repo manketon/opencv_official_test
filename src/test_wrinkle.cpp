@@ -9,14 +9,14 @@
 #include <string>
 #include <opencv2/imgcodecs.hpp>
 
-// 滤波类型
+// 滤波类型（即界面中的Window Function）
 enum FilterType
 {
 	FILTER_GAUSS,  //高斯 （此时FilterMode不可为带通）
 	FILTER_UNIFORM,  //uniform
 	FILTER_NONE //None
 };
-// 滤波模式
+// 滤波模式（即界面中的Cut-Off Filter Type）
 enum FilterMode
 {
 	MODE_LOW, //低通（即Short Wavelength）
