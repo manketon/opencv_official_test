@@ -19,9 +19,9 @@ enum FilterType
 // 滤波模式
 enum FilterMode
 {
-	MODE_LOW, //低通
-	MODE_HIGH, //高通
-	MODE_BAND  //带通
+	MODE_LOW, //低通（即Short Wavelength）
+	MODE_HIGH, //高通 （即Long Wavelength）
+	MODE_BAND  //带通 （即Band Pass）
 };
 
 class RowFFTMultiFilter
@@ -30,8 +30,8 @@ private:
 	// 动态输入参数（构造传入）
 	int N_POINT_PER_ROW;  // 每行采样点数
 	int M_ROW_COUNT;  // 总行数
-	double LAMBDA_BAND_LOW; //低通波长，使用Uniform的时候使用
-	double LAMBDA_BAND_HIGH; //高通波长，使用Uniform的时候使用
+	double LAMBDA_BAND_LOW; //低通波长的值 （即Filter Cut-Off Lower Limits，滤波器类型为Long Wavelength时，则不用设置此值）
+	double LAMBDA_BAND_HIGH; //高通波长的值（即Filter Cut-Off Upper Limits，滤波器类型为Short Wavelength时，则不用设置此值）
 
 	// FFTW 资源
 	fftw_plan fft_plan;
