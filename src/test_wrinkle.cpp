@@ -419,7 +419,11 @@ int test_wrinkle()
 		//RowFFTMultiFilter filter(W, H, targetWave, bandLowLam, bandHighLam);
 		RowFFTMultiFilter filter(W, H, bandLowLam, bandHighLam);
 		cv::Mat dstImg;
+		cv::TickMeter tm;
+		tm.start();
 		int ret = filter.runProcess(srcImg, OuterRadius, InnerRadius, StepSize, fType, fMode, dstImg);
+		tm.stop();
+		std::cout << "处理时间：" << tm.getTimeMilli() << "ms" << std::endl;
 		if (ret != 0)
 		{
 			std::cerr << "图像处理失败！" << std::endl;
