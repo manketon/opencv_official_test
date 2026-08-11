@@ -12,7 +12,7 @@
 // 滤波类型
 enum FilterType
 {
-	FILTER_GAUSS,  //高斯
+	FILTER_GAUSS,  //高斯 （此时FilterMode不可为带通）
 	FILTER_UNIFORM,  //uniform
 	FILTER_NONE //None
 };
