@@ -9,8 +9,6 @@
 using namespace std;
 using namespace cv;
 
-#define M_PI 3.14159265358979323846
-
 // 滤波类型
 enum FilterType
 {
@@ -272,20 +270,28 @@ public:
 	 */
 	int runProcess(const string& inputPath,
 		const string& outputPath,
-		vector<double>& dx_list,
+		const int OuterRadius,
+		const int InnerRadius,
+		const int StepSize,
 		FilterType filterType,
 		FilterMode filterMode)
 	{
+		const int maxImgRows = (OuterRadius - InnerRadius) / StepSize + 1; //径向扫描范围对应的最大行数
+		std::cout << __FUNCTION__ << " | maxImgRows:" << maxImgRows << std::endl;
+		// 生成每行的系数
+		vector<double> rows_coefficients(maxImgRows); //rows_coefficients[i]表示行maxImgRows-1-i的系数
+		double outer_perimeter = 2 * CV_PI * OuterRadius;  //晶圆最外围周长
+		double inner_perimeter = 2 * CV_PI * InnerRadius; //晶圆最内围周长
+		double step = (outer_perimeter - inner_perimeter) / maxImgRows; //
+		for (int y = 0; y < maxImgRows; y++)
+		{
+			rows_coefficients[y] = 1.0 / (inner_perimeter + y * step);
+		}
+		sort(rows_coefficients.begin(), rows_coefficients.end());
 		// 高斯禁止带通
 		if (filterType == FILTER_GAUSS && filterMode == MODE_BAND)
 		{
 			cerr << "错误：高斯滤波不支持带通模式！" << endl;
-			return -1;
-		}
-		// dx数组长度校验
-		if ((int)dx_list.size() != M_ROW_COUNT)
-		{
-			cerr << "错误：dx步距数组长度必须等于图像总行数" << endl;
 			return -1;
 		}
 
@@ -335,7 +341,7 @@ public:
 		for (int y = 0; y < M_ROW_COUNT; y++)
 		{
 			Mat single_row = img_src.row(y);
-			double dx = dx_list[y];
+			double dx = rows_coefficients[y];
 			processSingleRow(single_row, dx, filterType, filterMode, all_float_data[y]);
 		}
 
@@ -360,20 +366,12 @@ int test_wrinkle()
 		// 图像尺寸
 		const int W = 32768;
 		const int H = 8063;
-		// 生成每行扫描步距dx数组
-		vector<double> dx_list(H);
-		double out_max = 2 * M_PI * 48000.0;  //晶圆最外围尺寸半径
-		double inner_min = 2 * M_PI * 16000.0; //晶圆最内围尺寸半径
-		double step = (out_max - inner_min) / H; //步长
-		for (int y = 0; y < H; y++)
-		{
-			dx_list[y] = 1.0 / (inner_min + y * step);
-		}
-		sort(dx_list.begin(), dx_list.end());
-
-		string in_path = R"(G:\wafer_images\wrinkleImgs\dataForWrinkle\1.png)";
+		const int OuterRadius = 48250; //晶圆最外围尺寸半径
+		const int InnerRadius = 16002; //晶圆最内围尺寸半径
+		const int StepSize = 4;
+		string in_path = R"(G:\wafer_images\wrinkleImgs\dataForWrinkle\srcImgs\DUIBIAO Wrinkle 1A_SJ DUIBIAO wrinkle 1A_01_1_SZcO_IPP.png)";
 		//string out_path = "result_band.png";
-		string out_path = R"(G:\wafer_images\wrinkleImgs\dataForWrinkle\result_GAUSS_HIGH.png)";
+		string out_path = R"(G:\wafer_images\wrinkleImgs\dataForWrinkle\rslt\result_DUIBIAO Wrinkle 1A_SJ DUIBIAO wrinkle 1A_01_1_SZcO_IPP.png)";
 		//string out_path = "result_Uniform_band.png";
 
 		// ========== 切换此处参数即可更换滤波 ==========
@@ -405,7 +403,7 @@ int test_wrinkle()
 		//RowFFTMultiFilter filter(W, H, targetWave, bandLowLam, bandHighLam);
 		RowFFTMultiFilter filter(W, H, bandLowLam, bandHighLam);
 
-		int ret = filter.runProcess(in_path, out_path, dx_list, fType, fMode);
+		int ret = filter.runProcess(in_path, out_path, OuterRadius, InnerRadius, StepSize, fType, fMode);
 		if (ret != 0)
 		{
 			cerr << "图像处理失败！" << endl;
