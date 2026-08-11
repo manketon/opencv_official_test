@@ -13,7 +13,8 @@ using namespace cv;
 enum FilterType
 {
 	FILTER_GAUSS,  //高斯
-	FILTER_UNIFORM  //uniform
+	FILTER_UNIFORM,  //uniform
+	FILTER_NONE //None
 };
 // 滤波模式
 enum FilterMode
@@ -35,8 +36,8 @@ private:
 	// FFTW 资源
 	fftw_plan fft_plan;
 	fftw_plan ifft_plan;
-	double* in_real_buf;
-	fftw_complex* fft_cplx_buf;
+	double* in_real_buf = nullptr;
+	fftw_complex* fft_cplx_buf = nullptr;
 
 	/**
 	 * 1D 频谱中心化 fftshift：低频挪到数组中间
@@ -117,9 +118,8 @@ private:
 			double H_low = exp(-(f * f) / (2.0 * SIGMA_F * SIGMA_F));
 			return (fMode == MODE_LOW) ? H_low : (1.0 - H_low);
 		}
-		// Uniform 滤波
 		else
-		{
+		{// Uniform 滤波
 			// 低通/高通：
 			if (fMode == MODE_LOW || fMode == MODE_HIGH)
 			{
@@ -251,7 +251,13 @@ public:
 
 		// 分配FFTW缓冲区，初始化FFTW资源
 		in_real_buf = (double*)fftw_malloc(sizeof(double) * N_POINT_PER_ROW);
+		if (nullptr == in_real_buf) {
+			throw std::runtime_error("FFTW: fail to malloc for in_real_buf");
+		}
 		fft_cplx_buf = (fftw_complex*)fftw_malloc(sizeof(fftw_complex) * N_POINT_PER_ROW);
+		if (nullptr == fft_cplx_buf) {
+			throw std::runtime_error("FFTW: fail to malloc for fft_cplx_buf");
+		}
 		fft_plan = fftw_plan_dft_r2c_1d(N_POINT_PER_ROW, in_real_buf, fft_cplx_buf, FFTW_MEASURE);
 		ifft_plan = fftw_plan_dft_c2r_1d(N_POINT_PER_ROW, fft_cplx_buf, in_real_buf, FFTW_MEASURE);
 	}
@@ -261,8 +267,14 @@ public:
 	{
 		fftw_destroy_plan(fft_plan);
 		fftw_destroy_plan(ifft_plan);
-		fftw_free(in_real_buf);
-		fftw_free(fft_cplx_buf);
+		if (in_real_buf) {
+			fftw_free(in_real_buf);
+			in_real_buf = nullptr;
+		}
+		if (fft_cplx_buf) {
+			fftw_free(fft_cplx_buf);
+			fft_cplx_buf = nullptr;
+		}
 	}
 
 	/**
