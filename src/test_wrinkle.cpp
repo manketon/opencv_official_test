@@ -5,9 +5,9 @@
 #include <iomanip>
 #include <stdexcept>
 #include <fftw3.h>
-#include <opencv2/opencv.hpp>
-using namespace std;
-using namespace cv;
+#include <opencv2/core.hpp>
+#include <string>
+#include <opencv2/imgcodecs.hpp>
 
 // 滤波类型
 enum FilterType
@@ -46,7 +46,7 @@ private:
 	void fftShift1D(fftw_complex* cplx)
 	{
 		int half = N_POINT_PER_ROW / 2;
-		vector<fftw_complex> temp(half);
+		std::vector<fftw_complex> temp(half);
 		// 1. 拷贝后半段到临时缓存
 		for (int i = 0; i < half; i++)
 		{
@@ -76,19 +76,19 @@ private:
 	}
 
 	// ===================== 新增：打印一段复数频谱（只打印局部，防止刷屏） =====================
-	void printFFTComplexSlice(fftw_complex* cplx, int start, int end, string desc)
+	void printFFTComplexSlice(fftw_complex* cplx, int start, int end, std::string desc)
 	{
-		cout << "\n===== " << desc << " =====" << endl;
-		cout << setprecision(6) << fixed;
+		std::cout << "\n===== " << desc << " =====" << std::endl;
+		std::cout << std::setprecision(6) << std::fixed;
 		for (int k = start; k <= end; k++)
 		{
 			double re = cplx[k][0];
 			double im = cplx[k][1];
 			double amp = sqrt(re * re + im * im);
-			cout << "k=" << setw(5)
-				<< "  Re=" << setw(10) << re
-				<< "  Im=" << setw(10) << im
-				<< "  Amp=" << setw(10) << amp << endl;
+			std::cout << "k=" << std::setw(5)
+				<< "  Re=" << std::setw(10) << re
+				<< "  Im=" << std::setw(10) << im
+				<< "  Amp=" << std::setw(10) << amp << std::endl;
 		}
 	}
 
@@ -105,7 +105,7 @@ private:
 		{
 			if (fMode == MODE_BAND)
 			{
-				cerr << "错误：高斯不支持带通模式" << endl;
+				std::cerr << "错误：高斯不支持带通模式" << std::endl;
 				return 1.0;
 			}
 			double f0 = 0.0;
@@ -153,7 +153,7 @@ private:
 	 * @param dx_step 当前行扫描步距
 	 * @param row_out 输出滤波后double数组
 	 */
-	void processSingleRow(const Mat& row_in, double dx_step, FilterType filterType, FilterMode filterMode, vector<double>& row_out)
+	void processSingleRow(const cv::Mat& row_in, double dx_step, FilterType filterType, FilterMode filterMode, std::vector<double>& row_out)
 	{
 		// 1. 载入原始行到FFTW实数缓冲区
 		for (int x = 0; x < N_POINT_PER_ROW; x++)
@@ -195,7 +195,7 @@ private:
 	/**
 	 * 浮点二维数组全局归一化映射到 uint16 [0,4095]
 	 */
-	void floatToUint16(const vector<vector<double>>& float_buf, Mat& dst_u16)
+	void floatToUint16(const std::vector<std::vector<double>>& float_buf, cv::Mat& dst_u16)
 	{
 		dst_u16.create(M_ROW_COUNT, N_POINT_PER_ROW, CV_16UC1);
 		double global_min = 1e15;
@@ -239,15 +239,15 @@ public:
 	{
 		// ========== 参数合法性校验 ==========
 		if (N_POINT_PER_ROW <= 0)
-			throw invalid_argument("每行采样点数 N_POINT_PER_ROW 必须大于0");
+			throw std::invalid_argument("每行采样点数 N_POINT_PER_ROW 必须大于0");
 		if (M_ROW_COUNT <= 0)
-			throw invalid_argument("总行数 M_ROW_COUNT 必须大于0");
+			throw std::invalid_argument("总行数 M_ROW_COUNT 必须大于0");
 		if (LAMBDA_BAND_LOW <= 0.0)
-			throw invalid_argument("LAMBDA_BAND_LOW 带通下限波长必须大于0");
+			throw std::invalid_argument("LAMBDA_BAND_LOW 带通下限波长必须大于0");
 		if (LAMBDA_BAND_HIGH <= 0.0)
-			throw invalid_argument("LAMBDA_BAND_HIGH 带通上限波长必须大于0");
+			throw std::invalid_argument("LAMBDA_BAND_HIGH 带通上限波长必须大于0");
 		if (LAMBDA_BAND_LOW >= LAMBDA_BAND_HIGH)
-			throw invalid_argument("带通波长必须满足 LAMBDA_BAND_LOW < LAMBDA_BAND_HIGH");
+			throw std::invalid_argument("带通波长必须满足 LAMBDA_BAND_LOW < LAMBDA_BAND_HIGH");
 
 		// 分配FFTW缓冲区，初始化FFTW资源
 		in_real_buf = (double*)fftw_malloc(sizeof(double) * N_POINT_PER_ROW);
@@ -280,18 +280,22 @@ public:
 	/**
 	 * 主处理接口
 	 */
-	int runProcess(const string& inputPath,
-		const string& outputPath,
+	int runProcess(const cv::Mat& srcImg,
 		const int OuterRadius,
 		const int InnerRadius,
 		const int StepSize,
-		FilterType filterType,
-		FilterMode filterMode)
+		const FilterType filterType,
+		const FilterMode filterMode,
+		cv::Mat& dstImg)
 	{
+		if (filterType == FilterType::FILTER_NONE) {
+			dstImg = srcImg.clone();
+			return 0;
+		}
 		const int maxImgRows = (OuterRadius - InnerRadius) / StepSize + 1; //径向扫描范围对应的最大行数
 		std::cout << __FUNCTION__ << " | maxImgRows:" << maxImgRows << std::endl;
 		// 生成每行的系数
-		vector<double> rows_coefficients(maxImgRows); //rows_coefficients[i]表示行maxImgRows-1-i的系数
+		std::vector<double> rows_coefficients(maxImgRows); //rows_coefficients[i]表示行maxImgRows-1-i的系数
 		double outer_perimeter = 2 * CV_PI * OuterRadius;  //晶圆最外围周长
 		double inner_perimeter = 2 * CV_PI * InnerRadius; //晶圆最内围周长
 		double step = (outer_perimeter - inner_perimeter) / maxImgRows; //
@@ -303,66 +307,60 @@ public:
 		// 高斯禁止带通
 		if (filterType == FILTER_GAUSS && filterMode == MODE_BAND)
 		{
-			cerr << "错误：高斯滤波不支持带通模式！" << endl;
+			std::cerr << "错误：高斯滤波不支持带通模式！" << std::endl;
 			return -1;
 		}
-
-		Mat img_src = imread(inputPath, IMREAD_UNCHANGED);
-		if (img_src.empty())
+		if (srcImg.rows != M_ROW_COUNT || srcImg.cols != N_POINT_PER_ROW)
 		{
-			cerr << "错误：读取图像失败！" << endl;
-			return -1;
-		}
-		if (img_src.rows != M_ROW_COUNT || img_src.cols != N_POINT_PER_ROW)
-		{
-			cerr << "错误：图像尺寸与初始化行列参数不匹配！" << endl;
+			std::cerr << "错误：图像尺寸与初始化行列参数不匹配！" << std::endl;
 			return -1;
 		}
 
 		// 打印当前使用参数说明
-		cout << "========== 当前滤波配置 ==========" << endl;
-		cout << "图像尺寸：" << N_POINT_PER_ROW << " × " << M_ROW_COUNT << endl;
+		std::cout << "========== 当前滤波配置 ==========" << std::endl;
+		std::cout << "图像尺寸：" << N_POINT_PER_ROW << " × " << M_ROW_COUNT << std::endl;
 		if (filterType == FILTER_GAUSS)
 		{
-			cout << "滤波类型：高斯滤波 | 模式：" << (filterMode == MODE_LOW ? "低通" : "高通") << endl;
+			std::cout << "滤波类型：高斯滤波 | 模式：" << (filterMode == MODE_LOW ? "低通" : "高通") << std::endl;
 			if (filterMode == MODE_LOW)
-				cout << "使用波长参数 LAMBDA_BAND_LOW = " << LAMBDA_BAND_LOW << endl;
+				std::cout << "使用波长参数 LAMBDA_BAND_LOW = " << LAMBDA_BAND_LOW << std::endl;
 			if (filterMode == MODE_HIGH)
-				cout << "使用波长参数 LAMBDA_BAND_HIGH = " << LAMBDA_BAND_HIGH << endl;
+				std::cout << "使用波长参数 LAMBDA_BAND_HIGH = " << LAMBDA_BAND_HIGH << std::endl;
 		}
-		else
+		else if (filterType == FILTER_UNIFORM)
 		{
-			cout << "滤波类型：Uniform矩形滤波 | ";
+			std::cout << "滤波类型：Uniform矩形滤波 | ";
 			if (filterMode == MODE_LOW || filterMode == MODE_HIGH)
 			{
-				cout << "模式：" << (filterMode == MODE_LOW ? "低通" : "高通") << endl;
+				std::cout << "模式：" << (filterMode == MODE_LOW ? "低通" : "高通") << std::endl;
 				if (filterMode == MODE_LOW)
-					cout << "使用波长参数 LAMBDA_BAND_LOW = " << LAMBDA_BAND_LOW << endl;
+					std::cout << "使用波长参数 LAMBDA_BAND_LOW = " << LAMBDA_BAND_LOW << std::endl;
 				if (filterMode == MODE_HIGH)
-					cout << "使用波长参数 LAMBDA_BAND_HIGH = " << LAMBDA_BAND_HIGH << endl;
+					std::cout << "使用波长参数 LAMBDA_BAND_HIGH = " << LAMBDA_BAND_HIGH << std::endl;
 			}
 			else
 			{
-				cout << "模式：带通" << endl;
-				cout << "使用带通波长区间 [" << LAMBDA_BAND_LOW << "," << LAMBDA_BAND_HIGH << "]" << endl;
+				std::cout << "模式：带通" << std::endl;
+				std::cout << "使用带通波长区间 [" << LAMBDA_BAND_LOW << "," << LAMBDA_BAND_HIGH << "]" << std::endl;
 			}
 		}
-		cout << "==================================" << endl;
+		else if (filterType == FilterType::FILTER_NONE) {
+			std::cout << "filterType is None" << std::endl;
+		}
+		std::cout << "==================================" << std::endl;
 
-		vector<vector<double>> all_float_data(M_ROW_COUNT);
+		std::vector<std::vector<double>> all_float_data(M_ROW_COUNT);
 		for (int y = 0; y < M_ROW_COUNT; y++)
 		{
-			Mat single_row = img_src.row(y);
+			cv::Mat single_row = srcImg.row(y);
 			double dx = rows_coefficients[y];
 			processSingleRow(single_row, dx, filterType, filterMode, all_float_data[y]);
 		}
 
-		cout << "频域滤波完成，转换16位图像..." << endl;
-		Mat img_out_u16;
+		std::cout << "频域滤波完成，转换16位图像..." << std::endl;
+		cv::Mat img_out_u16;
 		floatToUint16(all_float_data, img_out_u16);
-
-		imwrite(outputPath, img_out_u16);
-		cout << "输出图像保存成功：" << outputPath << endl;
+		dstImg = img_out_u16;
 		return 0;
 	}
 
@@ -381,11 +379,17 @@ int test_wrinkle()
 		const int OuterRadius = 48250; //晶圆最外围尺寸半径
 		const int InnerRadius = 16002; //晶圆最内围尺寸半径
 		const int StepSize = 4;
-		string in_path = R"(G:\wafer_images\wrinkleImgs\dataForWrinkle\srcImgs\DUIBIAO Wrinkle 1A_SJ DUIBIAO wrinkle 1A_01_1_SZcO_IPP.png)";
+		std::string in_path = R"(G:\wafer_images\wrinkleImgs\dataForWrinkle\srcImgs\DUIBIAO Wrinkle 1A_SJ DUIBIAO wrinkle 1A_01_1_SZcO_IPP.png)";
 		//string out_path = "result_band.png";
-		string out_path = R"(G:\wafer_images\wrinkleImgs\dataForWrinkle\rslt\result_DUIBIAO Wrinkle 1A_SJ DUIBIAO wrinkle 1A_01_1_SZcO_IPP.png)";
+		std::string out_path = R"(G:\wafer_images\wrinkleImgs\dataForWrinkle\rslt\result_DUIBIAO Wrinkle 1A_SJ DUIBIAO wrinkle 1A_01_1_SZcO_IPP.png)";
 		//string out_path = "result_Uniform_band.png";
 
+		cv::Mat srcImg = cv::imread(in_path, cv::IMREAD_UNCHANGED);
+		if (srcImg.empty())
+		{
+			std::cerr << "错误：读取图像失败！" << std::endl;
+			return -1;
+		}
 		// ========== 切换此处参数即可更换滤波 ==========
 		// 示例1：高斯低通
 		//FilterType fType = FILTER_GAUSS;
@@ -414,22 +418,24 @@ int test_wrinkle()
 		// 构造对象，传入全部动态参数（内部自动校验）
 		//RowFFTMultiFilter filter(W, H, targetWave, bandLowLam, bandHighLam);
 		RowFFTMultiFilter filter(W, H, bandLowLam, bandHighLam);
-
-		int ret = filter.runProcess(in_path, out_path, OuterRadius, InnerRadius, StepSize, fType, fMode);
+		cv::Mat dstImg;
+		int ret = filter.runProcess(srcImg, OuterRadius, InnerRadius, StepSize, fType, fMode, dstImg);
 		if (ret != 0)
 		{
-			cerr << "图像处理失败！" << endl;
+			std::cerr << "图像处理失败！" << std::endl;
 			return -1;
 		}
+		auto bSuccess = cv::imwrite(out_path, dstImg);
+		std::cout << (bSuccess ? "成功" : "失败") << "地保存文件到路径:" << out_path << std::endl;
 	}
-	catch (const invalid_argument& e)
+	catch (const std::invalid_argument& e)
 	{
-		cerr << "参数校验失败：" << e.what() << endl;
+		std::cerr << "参数校验失败：" << e.what() << std::endl;
 		return -1;
 	}
 	catch (...)
 	{
-		cerr << "程序发生未知异常！" << endl;
+		std::cerr << "程序发生未知异常！" << std::endl;
 		return -1;
 	}
 	return 0;
