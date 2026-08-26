@@ -42,6 +42,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="convolution.h" />
+    <ClInclude Include="cutOffFilterImpl.hpp" />
     <ClInclude Include="hough.hpp" />
     <ClInclude Include="minAreaRectExt.h" />
     <ClInclude Include="opencl_kernels_imgproc.hpp" />
@@ -91,20 +92,24 @@
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
     <Import Project="$(COMMON_LIB)\opencv_tool_lib\opencv_tool_lib.props" />
+    <Import Project="..\..\..\Avant_git_projects\ALG_COMMON_LIB\logmerger\logmerge.props" />
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
     <Import Project="$(COMMON_LIB)\opencv_tool_lib\opencv_tool_lib.props" />
+    <Import Project="..\..\..\Avant_git_projects\ALG_COMMON_LIB\logmerger\logmerge.props" />
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
     <Import Project="$(OPENCV_GPU_PATH)\opencv.props" />
     <Import Project="$(COMMON_LIB)\opencv_tool_lib\opencv_tool_lib.props" />
+    <Import Project="..\..\..\Avant_git_projects\ALG_COMMON_LIB\logmerger\logmerge.props" />
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
     <Import Project="$(OPENCV_GPU_PATH)\opencv.props" />
     <Import Project="$(COMMON_LIB)\opencv_tool_lib\opencv_tool_lib.props" />
+    <Import Project="..\..\..\Avant_git_projects\ALG_COMMON_LIB\logmerger\logmerge.props" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
