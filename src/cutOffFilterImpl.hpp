@@ -255,7 +255,8 @@ namespace nsLSR20 {
 				}
 
 				double range = fabs(global_max - global_min) < 1e-9 ? 1.0 : (global_max - global_min);
-				double scale = 4095 / range;
+				const size_t MAX_VALUE = 4095/*65535*/;
+				double scale = MAX_VALUE / range;
 #pragma omp parallel for num_threads(m_max_threads) schedule(static)
 				for (int y = 0; y < M_ROW_COUNT; y++)
 				{
@@ -264,7 +265,7 @@ namespace nsLSR20 {
 					for (int x = 0; x < N_POINT_PER_ROW; x++)
 					{
 						double norm = (row[x] - global_min) * scale;
-						norm = norm < 0.0 ? 0.0 : (norm > 4095.0 ? 4095.0 : norm);
+						norm = norm < 0.0 ? 0.0 : (norm > MAX_VALUE ? MAX_VALUE : norm);
 						pDst_row[x] = static_cast<ushort>(round(norm));
 					}
 				}

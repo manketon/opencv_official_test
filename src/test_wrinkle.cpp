@@ -8,16 +8,45 @@ int test_wrinkle()
 	try
 	{
 		// 图像尺寸
-		const int W = 32768;
-		const int H = 8063;
-		const int OuterRadius = 48250; //晶圆最外围尺寸半径
-		const int InnerRadius = 16002; //晶圆最内围尺寸半径
-		const int StepSize = 4;
-		std::string in_path = R"(G:\wafer_images\wrinkleImgs\dataForWrinkle\srcImgs\DUIBIAO Wrinkle 1A_SJ DUIBIAO wrinkle 1A_01_1_SZcO_IPP.png)";
-		//string out_path = "result_band.png";
-		std::string out_path = R"(G:\wafer_images\wrinkleImgs\dataForWrinkle\rslt\result_DUIBIAO Wrinkle 1A_SJ DUIBIAO wrinkle 1A_01_1_SZcO_IPP.png)";
-		//string out_path = "result_Uniform_band.png";
-
+		int W = 0;
+		int H = 0;
+		int OuterRadius = 0; //晶圆最外围尺寸半径
+		int InnerRadius = 0; //晶圆最内围尺寸半径
+		int StepSize = 0;
+		std::string in_path; //原图路径 (需要根据原图中灰度值范围修改cutOffFilterImpl.hpp中的MAX_VALUE)
+		std::string out_path; //结果图路径
+		int nchoise = 0;
+		switch (nchoise)
+		{
+		case 0:
+			W = 32768;
+			H = 8063;
+			OuterRadius = 48250; //晶圆最外围尺寸半径
+			InnerRadius = 16002; //晶圆最内围尺寸半径
+			StepSize = 4;
+			in_path = R"(G:\wafer_images\wrinkleImgs\dataForWrinkle\srcImgs\DUIBIAO Wrinkle 1A_SJ DUIBIAO wrinkle 1A_01_1_SZcO_IPP.png)";
+			out_path = R"(G:\wafer_images\wrinkleImgs\dataForWrinkle\rslt\result_DUIBIAO Wrinkle 1A_SJ DUIBIAO wrinkle 1A_01_1_SZcO_IPP.png)";
+			break;
+		case 1:
+			W = 16384;
+			H = 5671;
+			OuterRadius = 48350; //晶圆最外围尺寸半径
+			InnerRadius = 20000; //晶圆最内围尺寸半径
+			StepSize = 5;
+			in_path = R"(G:\wafer_images\wrinkleImgs\61\原图\pngs\1A_SZc.png)";
+			out_path = R"(G:\wafer_images\wrinkleImgs\61\原图\pngs\cutoffRslt_1A_SZc.png)";
+			break;
+		case 2:
+			break;
+		case 3:
+			break;
+		case 4:
+			break;
+		case 5:
+			break;
+		default:
+			break;
+		}
 		cv::Mat srcImg = cv::imread(in_path, cv::IMREAD_UNCHANGED);
 		if (srcImg.empty())
 		{
