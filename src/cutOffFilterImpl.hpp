@@ -361,7 +361,7 @@ namespace nsLSR20 {
 #pragma omp parallel for num_threads(m_max_threads)
 				for (int y = 0; y < maxImgRows; y++)
 				{
-					rows_coefficients[static_cast<size_t>(maxImgRows - 1) - y] = 1.0 / (inner_perimeter + y * step);
+					rows_coefficients[static_cast<size_t>(maxImgRows - 1) - y] = 5.0 / (inner_perimeter + y * step);
 				}
 				if (srcImg.rows != M_ROW_COUNT || srcImg.cols != N_POINT_PER_ROW)
 				{
