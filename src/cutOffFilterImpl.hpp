@@ -358,10 +358,11 @@ namespace nsLSR20 {
 				double outer_perimeter = 2 * CV_PI * OuterRadius;  //晶圆最外围周长
 				double inner_perimeter = 2 * CV_PI * InnerRadius; //晶圆最内围周长
 				double step = (outer_perimeter - inner_perimeter) / maxImgRows; //
+				const double Scale = (N_POINT_PER_ROW / 16384.0) * 2.5;
 #pragma omp parallel for num_threads(m_max_threads)
 				for (int y = 0; y < maxImgRows; y++)
 				{
-					rows_coefficients[static_cast<size_t>(maxImgRows - 1) - y] = 5.0 / (inner_perimeter + y * step);
+					rows_coefficients[static_cast<size_t>(maxImgRows - 1) - y] = Scale / (inner_perimeter + y * step);
 				}
 				if (srcImg.rows != M_ROW_COUNT || srcImg.cols != N_POINT_PER_ROW)
 				{
