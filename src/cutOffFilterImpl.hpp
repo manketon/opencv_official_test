@@ -358,7 +358,7 @@ namespace nsLSR20 {
 				double outer_perimeter = 2 * CV_PI * OuterRadius;  //晶圆最外围周长
 				double inner_perimeter = 2 * CV_PI * InnerRadius; //晶圆最内围周长
 				double step = (outer_perimeter - inner_perimeter) / maxImgRows; //
-				const double Scale = (N_POINT_PER_ROW / 16384.0) * 2.5;
+				const double Scale = 1.0/*5.0*/; //值越大，目标越明显，同时可能引入假目标。周向采样点数为16384时，取2.5，或为32768时，取5.0，效果更明显，但为了和Candela61的结果相近，故使用1.0。
 #pragma omp parallel for num_threads(m_max_threads)
 				for (int y = 0; y < maxImgRows; y++)
 				{
