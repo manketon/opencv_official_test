@@ -39,6 +39,7 @@
     <ClCompile Include="test.cpp" />
     <ClCompile Include="test_cpp.cpp" />
     <ClCompile Include="test_wrinkle.cpp" />
+    <ClCompile Include="unsharp_mask.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="convolution.h" />

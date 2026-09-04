@@ -77,3 +77,5 @@ int test_minAreaRect_err(std::string& err);
 int test_write_info_to_png();
 
 int test_wrinkle();
+
+int test_unsharp_mask(std::string& err);

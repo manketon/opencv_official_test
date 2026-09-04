@@ -42,6 +42,7 @@ int main(int argc, char* argv[])
 		std::cout << "26、测试cv::minAreaRect中的异常情况" << std::endl;
 		std::cout << "27、读写info到png文件头" << std::endl;
 		std::cout << "28、测试褶皱（wrinkle）滤波算法" << std::endl;
+		std::cout << "29、测试unsharp_mask算法" << std::endl;
 		std::cout << "请输入您的选择:";
 		int nChoise = -1;
 		std::cin >> nChoise;
@@ -135,6 +136,9 @@ int main(int argc, char* argv[])
 			break;
 		case 28:
 			ret = test_wrinkle();
+			break;
+		case 29:
+			ret = test_unsharp_mask(str_err_reason);
 			break;
 		default:
 			std::cout << "非法输入" << std::endl;
