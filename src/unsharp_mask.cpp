@@ -18,50 +18,51 @@ void unsharp_mask(const cv::Mat& src, const double Radius, const double maskWeig
 	businlog_error_assert_is_greater(maskWeight, 0.0, "");
 	businlog_error_assert_is_less(maskWeight, 1.0, "");
 	businlog_error_assert(!src.empty(), "src is empty");
-	// ---------- 类型处理策略 ----------
-	// 为避免整数溢出，统一转到浮点空间运算，最后转回原类型
-	// 8UC1/8UC3  -> 32FC1/32FC3
-	// 16UC1      -> 32FC1
+
 	cv::Mat srcFloat;
 	int srcType = src.type();
 	bool is8U = (srcType == CV_8UC1 || srcType == CV_8UC3);
 	bool is16U = (srcType == CV_16UC1);
 
+	// ========== 1、直接转float保留原始像素值 ==========
 	if (is8U)
 	{
-		src.convertTo(srcFloat, CV_32F, 1.0 / 255.0);  // 归一化到 [0, 1]
+		src.convertTo(srcFloat, CV_32F);
 	}
 	else if (is16U)
 	{
-		src.convertTo(srcFloat, CV_32F, 1.0 / 65535.0); // 归一化到 [0, 1]
+		src.convertTo(srcFloat, CV_32F);
 	}
 	else
 	{
-		// 如果已经是浮点类型，直接克隆使用
 		srcFloat = src.clone();
 	}
 
-	// ---------- Unsharp Mask 核心算法 ----------
-	// 1. 高斯模糊（sigma = Radius）
+	// ========== 2：高斯模糊边界模式改为 BORDER_REPLICATE，和ImageJ一致 ==========
 	cv::Mat blurred;
-	//GaussianBlur 传 Size(0,0)，OpenCV 会根据 sigma=Radius 自动计算核大小（6*sigma + 1 并取奇数）
-	cv::GaussianBlur(srcFloat, blurred, cv::Size(0, 0), Radius);
-	// 2. 计算高频细节 = 原图 - 模糊图
-	cv::Mat highPass = srcFloat - blurred;
+	cv::GaussianBlur(srcFloat, blurred, cv::Size(0, 0), Radius, Radius, cv::BORDER_REPLICATE);
 
-	// 3. 锐化结果 = 原图 + maskWeight * 高频细节
-	//    等价于：dst = (1 - maskWeight) * blur + (1 + maskWeight/(1-maskWeight))...
-	//    更直观的写法：
-	cv::Mat sharpened = srcFloat + maskWeight * highPass;
+	// ========== 3、使用ImageJ原版公式 (src - w*blur)/(1-w) ==========
+	cv::Mat sharpened;
+	const double w = maskWeight;
+	sharpened = (srcFloat - w * blurred) / (1.0 - w);
 
-	// ---------- 转回原类型 ----------
+	// ========== 转回原类型，注意像素值截断（ImageJ内部会钳位到合法范围） ==========
 	if (is8U)
 	{
-		sharpened.convertTo(dst, srcType, 255.0);
+		// 限制 0~255，防止溢出
+		cv::Mat clamped;
+		cv::max(sharpened, 0.0f, clamped);
+		cv::min(clamped, 255.0f, clamped);
+		clamped.convertTo(dst, srcType);
 	}
 	else if (is16U)
 	{
-		sharpened.convertTo(dst, srcType, 65535.0);
+		// 16UC范围 0 ~ 65535
+		cv::Mat clamped;
+		cv::max(sharpened, 0.0f, clamped);
+		cv::min(clamped, 65535.0, clamped);
+		clamped.convertTo(dst, srcType);
 	}
 	else
 	{
