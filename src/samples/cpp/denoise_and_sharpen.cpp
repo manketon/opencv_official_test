@@ -174,19 +174,19 @@ cv::Mat high_boost_filter(const cv::Mat& image,
 	cv::Mat boost_mask = cv::Mat::ones(image.size(), CV_32F) + boost_factor * hp_mask;
 
 	// 频域增强
-	return apply_frequency_filter(image, boost_mask);
+	auto dst = apply_frequency_filter(image, boost_mask);
+	dst.convertTo(dst, CV_8UC1);
+	return dst;
 }
 void denoise_and_sharpen(const cv::Mat& src, cv::Mat& sharpened, const double sigma = 71,
 	const double cutoff = 25.0, const double boost_factor = 1.7) {
 	// 1) 生成高斯低通掩模
 	cv::Mat gmask = gaussian_lowpass(src.rows, src.cols, sigma);
 	// 2) 频域低通滤波
-	cv::Mat lowpass = apply_frequency_filter(src, gmask);
+	cv::Mat denoised = apply_frequency_filter(src, gmask);
 	gmask.release();
 	// 3) 高频增强锐化
-	cv::Mat dst = high_boost_filter(src, cutoff, boost_factor, "butterworth");
-	lowpass.release();
-	dst.convertTo(sharpened, CV_8UC1);
+	sharpened = high_boost_filter(denoised, cutoff, boost_factor, "butterworth");
 }
 
 int test_denoise_and_sharpen(std::string& err)
@@ -199,7 +199,9 @@ int test_denoise_and_sharpen(std::string& err)
 	double sigma = 71;
 	double cutoff = 25.0;
 	double boost_factor = 1.7;
-	std::string params = std::to_string(sigma) + "_" + std::to_string(cutoff) + "_" + std::to_string(boost_factor);
+	std::ostringstream oss;
+	oss << sigma << "_" << cutoff << "_" << boost_factor;
+	std::string params = oss.str();
 	denoise_and_sharpen(src, dst, sigma, cutoff, boost_factor);
 	std::filesystem::path path_src(img_path);
 	std::string out_path = path_src.parent_path().string() + "/" + path_src.stem().string() + "_" + params + "_sharpened.png";
