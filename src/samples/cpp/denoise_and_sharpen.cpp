@@ -9,6 +9,9 @@
 #include <opencv2/highgui.hpp>
 #include <busin_log.h>
 #include <filesystem>
+#include <opencv_tool/opencv_common_tool.h>
+#include <opencv_tool/opencv_process_image.h>
+#include "../../utils.hpp"
 
 // 1) 频域平移：把零频分量移到图像中心
 static void fftShift2D(cv::Mat& src)
@@ -175,7 +178,7 @@ cv::Mat high_boost_filter(const cv::Mat& image,
 
 	// 频域增强
 	auto dst = apply_frequency_filter(image, boost_mask);
-	dst.convertTo(dst, CV_8UC1);
+	dst.convertTo(dst, image.type());
 	return dst;
 }
 void denoise_and_sharpen(const cv::Mat& src, cv::Mat& sharpened, const double sigma = 71,
@@ -189,10 +192,33 @@ void denoise_and_sharpen(const cv::Mat& src, cv::Mat& sharpened, const double si
 	sharpened = high_boost_filter(denoised, cutoff, boost_factor, "butterworth");
 }
 
+void denoise_and_sharpen_by_slices(const cv::Mat& src, cv::Mat& sharpened, const double sigma = 71,
+	const double cutoff = 25.0, const double boost_factor = 1.7, const cv::Size sliceSize = cv::Size(), const int overlapLength = 0) {
+	businlog_error_assert((sliceSize.width > 0 && sliceSize.height > 0) || (sliceSize.width == 0 && sliceSize.height == 0), "sliceSize is Invalid");
+	businlog_error_assert(overlapLength >= 0, "overlapLength:" << overlapLength << " is invalid");
+	businlog_error_assert(overlapLength < sliceSize.height, "overlapLength:" << overlapLength << " must < sliceSize.height:" << sliceSize.height);
+	businlog_error_assert(overlapLength < sliceSize.width, "overlapLength:" << overlapLength << " must < sliceSize.width:" << sliceSize.width);
+	if (sliceSize == cv::Size() || sliceSize.width >= src.cols || sliceSize.height >= src.rows) {
+		denoise_and_sharpen(src, sharpened, sigma, cutoff, boost_factor);
+	}
+	else {
+		std::vector <nsTest::ImgSliceRslt > slicedRslts;
+		std::string err;
+		int ret = nsTest::sliceImage(src, sliceSize.width, sliceSize.height, overlapLength, overlapLength, slicedRslts, err);
+		businlog_error_assert(!ret, "Fail to slice image, reason:" << err);
+		sharpened.create(src.size(), src.type());
+		for (const auto& sliceRslt : slicedRslts) {
+			cv::Mat localRslt;
+			denoise_and_sharpen(sliceRslt.subImg, localRslt, sigma, cutoff, boost_factor);
+			cv::Mat localSharpened(sharpened, sliceRslt.roi);
+			localRslt.copyTo(localSharpened);
+		}
+	}
+}
 int test_denoise_and_sharpen(std::string& err)
 {
 	std::string img_path = R"(D:\DevelopMent\LibLSR20_Optimized\doc\CutOffFilter\srcImgs\20260902_090032\gray_Gaussian_Long WavelengthDUIBIAO Wrinkle 1A_SJ DUIBIAO wrinkle 1A_01_1_SZcO_IPP.png)";
-	img_path = R"(G:\wafer_images\wrinkleImgs\dataForWrinkle\srcImgs\3.png)";
+	//img_path = R"(G:\wafer_images\wrinkleImgs\dataForWrinkle\srcImgs\3.png)";
 	cv::Mat src = cv::imread(img_path, cv::IMREAD_UNCHANGED);
 	businlog_error_return_err_reason(!src.empty(), "fail to imread image from path:" << img_path, err, -1);
 	cv::Mat dst;
@@ -202,9 +228,10 @@ int test_denoise_and_sharpen(std::string& err)
 	std::ostringstream oss;
 	oss << sigma << "_" << cutoff << "_" << boost_factor;
 	std::string params = oss.str();
-	denoise_and_sharpen(src, dst, sigma, cutoff, boost_factor);
+	denoise_and_sharpen_by_slices(src, dst, sigma, cutoff, boost_factor, cv::Size(1024, 1024), 200);
 	std::filesystem::path path_src(img_path);
 	std::string out_path = path_src.parent_path().string() + "/" + path_src.stem().string() + "_" + params + "_sharpened.png";
 	businlog_error_return_err_reason(cv::imwrite(out_path, dst), "fail to write image to path:" << out_path, err, -1);
+	businlog_info("success to write image to path:" << out_path);
 	return 0;
 }
