@@ -219,10 +219,10 @@ void denoise_and_sharpen(const cv::Mat& src, cv::Mat& sharpened, const double si
 void denoise_and_sharpen_by_slices(const cv::Mat& src, cv::Mat& sharpened, const double sigma = 71,
 	const double cutoff = 25.0, const double boost_factor = 1.7) {
 	cv::Size sliceSize = cv::Size(std::min(/*2048*/1024, src.cols), std::min(1024, src.rows)); //由于opencv不支持大图，故需要切片，这些参数不需要暴露出去。
-	const int overlapLength = 200/*100*/;
+	const int overlapLength = std::max(static_cast<int>(cutoff), static_cast<int>(sigma)); //TODO::即使取大点，还是存在切割线情况。
 	std::vector <nsTest::ImgSliceRslt > slicedRslts;
 	std::string err;
-	int ret = nsTest::sliceImage(src, sliceSize.width, sliceSize.height, overlapLength, overlapLength/*0*/, slicedRslts, err);
+	int ret = nsTest::sliceImage(src, sliceSize.width, sliceSize.height, overlapLength, overlapLength, slicedRslts, err);
 	businlog_error_assert(!ret, "Fail to slice image, reason:" << err);
 	businlog_info("slicedRslts.size:" << slicedRslts.size());
 	sharpened.create(src.size(), src.type());
