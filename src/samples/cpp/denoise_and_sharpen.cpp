@@ -217,26 +217,20 @@ void denoise_and_sharpen(const cv::Mat& src, cv::Mat& sharpened, const double si
 }
 
 void denoise_and_sharpen_by_slices(const cv::Mat& src, cv::Mat& sharpened, const double sigma = 71,
-	const double cutoff = 25.0, const double boost_factor = 1.7, const cv::Size sliceSize = cv::Size(), const int overlapLength = 0) {
-	businlog_error_assert((sliceSize.width > 0 && sliceSize.height > 0) || (sliceSize.width == 0 && sliceSize.height == 0), "sliceSize is Invalid");
-	businlog_error_assert(overlapLength >= 0, "overlapLength:" << overlapLength << " is invalid");
-	businlog_error_assert(overlapLength < sliceSize.height, "overlapLength:" << overlapLength << " must < sliceSize.height:" << sliceSize.height);
-	businlog_error_assert(overlapLength < sliceSize.width, "overlapLength:" << overlapLength << " must < sliceSize.width:" << sliceSize.width);
-	if (sliceSize == cv::Size() || sliceSize.width >= src.cols || sliceSize.height >= src.rows) {
-		denoise_and_sharpen(src, sharpened, sigma, cutoff, boost_factor);
-	}
-	else {
-		std::vector <nsTest::ImgSliceRslt > slicedRslts;
-		std::string err;
-		int ret = nsTest::sliceImage(src, sliceSize.width, sliceSize.height, overlapLength, overlapLength, slicedRslts, err);
-		businlog_error_assert(!ret, "Fail to slice image, reason:" << err);
-		sharpened.create(src.size(), src.type());
-		for (const auto& sliceRslt : slicedRslts) {
-			cv::Mat localRslt;
-			denoise_and_sharpen(sliceRslt.subImg, localRslt, sigma, cutoff, boost_factor);
-			cv::Mat localSharpened(sharpened, sliceRslt.roi);
-			localRslt.copyTo(localSharpened);
-		}
+	const double cutoff = 25.0, const double boost_factor = 1.7) {
+	cv::Size sliceSize = cv::Size(std::min(/*2048*/1024, src.cols), std::min(1024, src.rows)); //由于opencv不支持大图，故需要切片，这些参数不需要暴露出去。
+	const int overlapLength = 200/*100*/;
+	std::vector <nsTest::ImgSliceRslt > slicedRslts;
+	std::string err;
+	int ret = nsTest::sliceImage(src, sliceSize.width, sliceSize.height, overlapLength, overlapLength/*0*/, slicedRslts, err);
+	businlog_error_assert(!ret, "Fail to slice image, reason:" << err);
+	businlog_info("slicedRslts.size:" << slicedRslts.size());
+	sharpened.create(src.size(), src.type());
+	for (const auto& sliceRslt : slicedRslts) {
+		cv::Mat localRslt;
+		denoise_and_sharpen(sliceRslt.subImg, localRslt, sigma, cutoff, boost_factor);
+		cv::Mat localSharpened(sharpened, sliceRslt.roi);
+		localRslt.copyTo(localSharpened);
 	}
 }
 int test_denoise_and_sharpen(std::string& err)
@@ -252,7 +246,7 @@ int test_denoise_and_sharpen(std::string& err)
 	std::ostringstream oss;
 	oss << sigma << "_" << cutoff << "_" << boost_factor;
 	std::string params = oss.str();
-	denoise_and_sharpen_by_slices(src, dst, sigma, cutoff, boost_factor, cv::Size(1024, 1024), 200);
+	denoise_and_sharpen_by_slices(src, dst, sigma, cutoff, boost_factor);
 	std::filesystem::path path_src(img_path);
 	std::string out_path = path_src.parent_path().string() + "/" + path_src.stem().string() + "_" + params + "_sharpened.png";
 	businlog_error_return_err_reason(cv::imwrite(out_path, dst), "fail to write image to path:" << out_path, err, -1);
