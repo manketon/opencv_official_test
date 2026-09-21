@@ -110,24 +110,24 @@ cv::Mat gaussian_lowpass(int rows, int cols, double sigma = 30.0)
 }
 
 // 5) 应用频域滤波器
-cv::Mat apply_frequency_filter(const cv::Mat& image, const cv::Mat& mask)
+cv::Mat apply_frequency_filter(const cv::Mat& src32F, const cv::Mat& mask)
 {
-	CV_Assert(image.type() == CV_8UC1 || image.type() == CV_32F || image.type() == CV_64F || image.type() == CV_16UC1);
-	CV_Assert(image.size() == mask.size());
+	businlog_error_assert(src32F.depth() == CV_32F, "src32F.depth:" << cv::depthToString(src32F.depth()) << "  must be CV_32F");
+	CV_Assert(src32F.size() == mask.size());
 
-	cv::Mat src;
-	if (image.depth() == CV_32F) {
-		src = image;
+	cv::Mat img32F;
+	if (src32F.depth() == CV_32F) {
+		img32F = src32F;
 	}
 	else {
-		int type = CV_MAKE_TYPE(CV_32F, image.channels());
-		image.convertTo(src, type);
+		int type = CV_MAKE_TYPE(CV_32F, src32F.channels());
+		src32F.convertTo(img32F, type);
 	}
 	// 生成复数矩阵
 	cv::Mat complexSrc;
 	std::vector<cv::Mat> planes = {
-		src.clone(),
-		cv::Mat::zeros(src.size(), CV_32F)
+		img32F.clone(),
+		cv::Mat::zeros(img32F.size(), CV_32F)
 	};
 	cv::merge(planes, complexSrc);
 
@@ -198,12 +198,21 @@ void denoise_and_sharpen(const cv::Mat& src, cv::Mat& sharpened, const double si
 	// 1) 生成高斯低通掩模
 	cv::Mat gmask = gaussian_lowpass(src.rows, src.cols, sigma);
 	// 2) 频域低通滤波
-	cv::Mat denoised = apply_frequency_filter(src, gmask);
+	cv::Mat src32F;
+	if (src.depth() == CV_32F) {
+		src32F = src;
+	}
+	else {
+		int type = CV_MAKE_TYPE(CV_32F, src.channels());
+		src.convertTo(src32F, type);
+	}
+	cv::Mat denoised = apply_frequency_filter(src32F, gmask);
 	gmask.release();
 	// 3) 高频增强锐化
 	sharpened = high_boost_filter(denoised, cutoff, boost_factor, "butterworth");
-	if (sharpened.type() != src.type()) {
-		sharpened.convertTo(sharpened, src.type());
+	if (sharpened.depth() != src.depth()) {
+		int type = CV_MAKE_TYPE(src.depth(), sharpened.channels());
+		sharpened.convertTo(sharpened, type);
 	}
 }
 
