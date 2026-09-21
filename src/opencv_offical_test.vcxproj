@@ -50,6 +50,10 @@
     <ClInclude Include="samples\cpp\common.h" />
     <ClInclude Include="test.h" />
     <ClInclude Include="test_cpp.h" />
+    <ClInclude Include="utils.hpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="samples\cpp\denoise_and_sharpen.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>

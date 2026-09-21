@@ -87,6 +87,9 @@
     <ClCompile Include="unsharp_mask.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="samples\cpp\denoise_and_sharpen.cpp">
+      <Filter>源文件\cpp</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="test.h">
@@ -111,6 +114,9 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="cutOffFilterImpl.hpp">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="utils.hpp">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>
