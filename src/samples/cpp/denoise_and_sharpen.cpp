@@ -253,3 +253,52 @@ int test_denoise_and_sharpen(std::string& err)
 	businlog_info("success to write image to path:" << out_path);
 	return 0;
 }
+//测试ShitFFT在大图上的结果是否符合预期
+int test_shiftFFt(std::string& err) {
+	std::string img_path = R"(D:\DevelopMent\LibLSR20_Optimized\doc\CutOffFilter\srcImgs\20260902_090032\gray_Gaussian_Long WavelengthDUIBIAO Wrinkle 1A_SJ DUIBIAO wrinkle 1A_01_1_SZcO_IPP.png)";
+	//img_path = R"(G:\wafer_images\wrinkleImgs\dataForWrinkle\srcImgs\3.png)";
+	cv::Mat src = cv::imread(img_path, cv::IMREAD_UNCHANGED);
+	businlog_error_return_err_reason(!src.empty(), "fail to imread image from path:" << img_path, err, -1);
+	cv::Mat src32F;
+	if (src.depth() == CV_32F) {
+		src32F = src;
+	}
+	else {
+		int type = CV_MAKE_TYPE(CV_32F, src.channels());
+		src.convertTo(src32F, type);
+	}
+	int type = CV_MAKE_TYPE(CV_32F, src.channels());
+	cv::Mat mask;
+	std::string testContent; //测试项内容
+	int choise = 2;
+	switch (choise) {
+	case 1:
+		//此时所得dst与src完全相同，即：图片大小为32768*8063时，函数apply_frequency_filter的结果符合预期。
+		mask = cv::Mat::ones(src.size(), type);
+		testContent = "shitFFT";
+		break;
+	case 2:
+	{
+		//TODO::图片大小为32768*8063时，函数apply_frequency_filter的结果不符合预期。
+		double sigma = 71; //数值越大，所得模糊程度越小。
+		mask = gaussian_lowpass(src.rows, src.cols, sigma);
+		testContent = "gaussian_lowpass";
+	}
+	break;
+	case 3:
+	{
+	}
+	break;
+	}
+
+	cv::Mat dst = apply_frequency_filter(src32F, mask);
+	if (dst.depth() != src.depth()) {
+		int type = CV_MAKE_TYPE(src.depth(), dst.channels());
+		dst.convertTo(dst, type);
+	}
+	std::filesystem::path path_src(img_path);
+	std::string out_path = path_src.parent_path().string() + "/" + path_src.stem().string() + "_" + testContent + ".png";
+	businlog_error_return_err_reason(cv::imwrite(out_path, dst), "fail to write image to path:" << out_path, err, -1);
+	businlog_info("success to write image to path:" << out_path);
+	return 0;
+}
