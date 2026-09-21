@@ -116,8 +116,13 @@ cv::Mat apply_frequency_filter(const cv::Mat& image, const cv::Mat& mask)
 	CV_Assert(image.size() == mask.size());
 
 	cv::Mat src;
-	image.convertTo(src, CV_32F);
-
+	if (image.depth() == CV_32F) {
+		src = image;
+	}
+	else {
+		int type = CV_MAKE_TYPE(CV_32F, image.channels());
+		image.convertTo(src, type);
+	}
 	// 生成复数矩阵
 	cv::Mat complexSrc;
 	std::vector<cv::Mat> planes = {
@@ -178,9 +183,16 @@ cv::Mat high_boost_filter(const cv::Mat& image,
 
 	// 频域增强
 	auto dst = apply_frequency_filter(image, boost_mask);
-	dst.convertTo(dst, image.type());
 	return dst;
 }
+/**
+ * @brief
+ * @param src -[in/out]
+ * @param sharpened -[out] 降噪和锐化后的图像，类型和尺寸和输入一致。
+ * @param sigma -[in/out]
+ * @param cutoff -[in/out]
+ * @param boost_factor -[in/out]
+ */
 void denoise_and_sharpen(const cv::Mat& src, cv::Mat& sharpened, const double sigma = 71,
 	const double cutoff = 25.0, const double boost_factor = 1.7) {
 	// 1) 生成高斯低通掩模
@@ -190,6 +202,9 @@ void denoise_and_sharpen(const cv::Mat& src, cv::Mat& sharpened, const double si
 	gmask.release();
 	// 3) 高频增强锐化
 	sharpened = high_boost_filter(denoised, cutoff, boost_factor, "butterworth");
+	if (sharpened.type() != src.type()) {
+		sharpened.convertTo(sharpened, src.type());
+	}
 }
 
 void denoise_and_sharpen_by_slices(const cv::Mat& src, cv::Mat& sharpened, const double sigma = 71,
