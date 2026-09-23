@@ -94,16 +94,18 @@ cv::Mat gaussian_lowpass(int rows, int cols, double sigma = 30.0)
 	cv::Mat mask(rows, cols, CV_32F);
 	double cx = cols / 2.0;
 	double cy = rows / 2.0;
+	double denom = 2.0 * sigma * sigma;
 
 	for (int y = 0; y < rows; ++y)
 	{
+		float* p = mask.ptr<float>(y);
+		double dy = y - cy;
+		double dy2 = dy * dy;
 		for (int x = 0; x < cols; ++x)
 		{
 			double dx = x - cx;
-			double dy = y - cy;
-			double D = std::sqrt(dx * dx + dy * dy);
-
-			mask.at<float>(y, x) = static_cast<float>(std::exp(-(D * D) / (2.0 * sigma * sigma)));
+			double r_sq = dx * dx + dy2;
+			p[x] = static_cast<float>(std::exp(-r_sq / denom));
 		}
 	}
 	return mask;
@@ -236,7 +238,8 @@ void denoise_and_sharpen_by_slices(const cv::Mat& src, cv::Mat& sharpened, const
 int test_denoise_and_sharpen(std::string& err)
 {
 	std::string img_path = R"(D:\DevelopMent\LibLSR20_Optimized\doc\CutOffFilter\srcImgs\20260902_090032\gray_Gaussian_Long WavelengthDUIBIAO Wrinkle 1A_SJ DUIBIAO wrinkle 1A_01_1_SZcO_IPP.png)";
-	//img_path = R"(G:\wafer_images\wrinkleImgs\dataForWrinkle\srcImgs\3.png)";
+	img_path = R"(G:\wafer_images\wrinkleImgs\dataForWrinkle\srcImgs\3.png)";
+	//img_path = R"(F:\workspace\WaferInspection\LibLSR20_Optimized\testImg\unsharp_mask\wrinkle_sharped.png)";
 	cv::Mat src = cv::imread(img_path, cv::IMREAD_UNCHANGED);
 	businlog_error_return_err_reason(!src.empty(), "fail to imread image from path:" << img_path, err, -1);
 	cv::Mat dst;
@@ -279,7 +282,7 @@ int test_shiftFFt(std::string& err) {
 		break;
 	case 2:
 	{
-		//TODO::图片大小为32768*8063时，函数apply_frequency_filter的结果不符合预期。
+		//TODO::图片大小为32768*8063时，函数apply_frequency_filter的结果不符合预期。难度是因为图像尺寸过大，导致mask都接近0
 		double sigma = 71; //数值越大，所得模糊程度越小。
 		mask = gaussian_lowpass(src.rows, src.cols, sigma);
 		testContent = "gaussian_lowpass";
