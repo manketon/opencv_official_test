@@ -92,9 +92,9 @@ static void fftShift2D(cv::Mat& src)
 	{
 		for (int y = 0; y < src.rows; ++y)
 		{
+			const int sy = (y + rowShift) % src.rows;
 			for (int x = 0; x < src.cols; ++x)
 			{
-				const int sy = (y + rowShift) % src.rows;
 				const int sx = (x + colShift) % src.cols;
 				dst.at<double>(y, x) = src.at<double>(sy, sx);
 			}
@@ -104,9 +104,9 @@ static void fftShift2D(cv::Mat& src)
 	{
 		for (int y = 0; y < src.rows; ++y)
 		{
+			const int sy = (y + rowShift) % src.rows;
 			for (int x = 0; x < src.cols; ++x)
 			{
-				const int sy = (y + rowShift) % src.rows;
 				const int sx = (x + colShift) % src.cols;
 				dst.at<cv::Vec2d>(y, x) = src.at<cv::Vec2d>(sy, sx);
 			}
@@ -129,9 +129,9 @@ static void ifftShift2D(cv::Mat& src)
 	{
 		for (int y = 0; y < src.rows; ++y)
 		{
+			const int sy = (y + rowShift + src.rows) % src.rows;
 			for (int x = 0; x < src.cols; ++x)
 			{
-				const int sy = (y + rowShift + src.rows) % src.rows;
 				const int sx = (x + colShift + src.cols) % src.cols;
 				dst.at<double>(y, x) = src.at<double>(sy, sx);
 			}
@@ -141,9 +141,9 @@ static void ifftShift2D(cv::Mat& src)
 	{
 		for (int y = 0; y < src.rows; ++y)
 		{
+			const int sy = (y + rowShift + src.rows) % src.rows;
 			for (int x = 0; x < src.cols; ++x)
 			{
-				const int sy = (y + rowShift + src.rows) % src.rows;
 				const int sx = (x + colShift + src.cols) % src.cols;
 				dst.at<cv::Vec2d>(y, x) = src.at<cv::Vec2d>(sy, sx);
 			}
@@ -193,11 +193,13 @@ static cv::Mat butterworth_lowpass(const int rows, const int cols, const double 
 
 	for (int y = 0; y < rows; ++y)
 	{
+		double dy = static_cast<double>(y - cy);
+		const auto dy2 = dy * dy;
 		for (int x = 0; x < cols; ++x)
 		{
 			double dx = static_cast<double>(x - cx);
-			double dy = static_cast<double>(y - cy);
-			double D = std::sqrt(dx * dx + dy * dy);
+
+			double D = std::sqrt(dx * dx + dy2);
 			mask.at<double>(y, x) = 1.0 / (1.0 + std::pow(D / cutoff, 2.0 * n));
 		}
 	}
@@ -216,11 +218,12 @@ cv::Mat gaussian_lowpass(int rows, int cols, double sigma = 30.0)
 	for (int y = 0; y < rows; ++y)
 	{
 		double* p = mask.ptr<double>(y);
+		double dy = static_cast<double>(y - cy);
+		const auto dy2 = dy * dy;
 		for (int x = 0; x < cols; ++x)
 		{
 			double dx = static_cast<double>(x - cx);
-			double dy = static_cast<double>(y - cy);
-			double r_sq = dx * dx + dy * dy;
+			double r_sq = dx * dx + dy2;
 			p[x] = std::exp(-r_sq / denom);
 		}
 	}
@@ -228,18 +231,18 @@ cv::Mat gaussian_lowpass(int rows, int cols, double sigma = 30.0)
 }
 
 // 5) 应用频域滤波器：等价 Python 中 np.fft.ifft2(np.fft.ifftshift(fshift)).real
-cv::Mat apply_frequency_filter(const cv::Mat& src32F, const cv::Mat& mask)
+cv::Mat apply_frequency_filter(const cv::Mat& src, const cv::Mat& mask)
 {
-	CV_Assert(src32F.size() == mask.size());
-	CV_Assert(src32F.channels() == 1 || src32F.channels() == mask.channels());
+	CV_Assert(src.size() == mask.size());
+	CV_Assert(src.channels() == 1 || src.channels() == mask.channels());
 
 	cv::Mat img64F;
-	if (src32F.depth() == CV_64F) {
-		img64F = src32F;
+	if (src.depth() == CV_64F) {
+		img64F = src;
 	}
 	else {
-		int type = CV_MAKE_TYPE(CV_64F, src32F.channels());
-		src32F.convertTo(img64F, type);
+		int type = CV_MAKE_TYPE(CV_64F, src.channels());
+		src.convertTo(img64F, type);
 	}
 
 	cv::Mat complexSrc;
@@ -267,7 +270,7 @@ cv::Mat apply_frequency_filter(const cv::Mat& src32F, const cv::Mat& mask)
 	cv::dft(complexSrc, complexSrc, cv::DftFlags::DFT_INVERSE | cv::DftFlags::DFT_SCALE);
 
 	cv::split(complexSrc, fplanes);
-	cv::Mat realPart = fplanes[0].clone();
+	cv::Mat realPart = fplanes[0];
 	return realPart;
 }
 
@@ -375,55 +378,6 @@ int test_denoise_and_sharpen(std::string& err)
 	denoise_and_sharpen(src, dst, sigma, cutoff, boost_factor);
 	std::filesystem::path path_src(img_path);
 	std::string out_path = path_src.parent_path().string() + "/" + path_src.stem().string() + "_" + params + "_sharpened.png";
-	businlog_error_return_err_reason(cv::imwrite(out_path, dst), "fail to write image to path:" << out_path, err, -1);
-	businlog_info("success to write image to path:" << out_path);
-	return 0;
-}
-//测试ShitFFT在大图上的结果是否符合预期
-int test_shiftFFt(std::string& err) {
-	std::string img_path = R"(D:\DevelopMent\LibLSR20_Optimized\doc\CutOffFilter\srcImgs\20260902_090032\gray_Gaussian_Long WavelengthDUIBIAO Wrinkle 1A_SJ DUIBIAO wrinkle 1A_01_1_SZcO_IPP.png)";
-	//img_path = R"(G:\wafer_images\wrinkleImgs\dataForWrinkle\srcImgs\3.png)";
-	cv::Mat src = cv::imread(img_path, cv::IMREAD_UNCHANGED);
-	businlog_error_return_err_reason(!src.empty(), "fail to imread image from path:" << img_path, err, -1);
-	cv::Mat src32F;
-	if (src.depth() == CV_64F) {
-		src32F = src;
-	}
-	else {
-		int type = CV_MAKE_TYPE(CV_64F, src.channels());
-		src.convertTo(src32F, type);
-	}
-	int type = CV_MAKE_TYPE(CV_64F, src.channels());
-	cv::Mat mask;
-	std::string testContent; //测试项内容
-	int choise = 2;
-	switch (choise) {
-	case 1:
-		//此时所得dst与src完全相同，即：图片大小为32768*8063时，函数apply_frequency_filter的结果符合预期。
-		mask = cv::Mat::ones(src.size(), type);
-		testContent = "shitFFT";
-		break;
-	case 2:
-	{
-		//TODO::图片大小为32768*8063时，函数apply_frequency_filter的结果不符合预期。难度是因为图像尺寸过大，导致mask都接近0
-		double sigma = 71; //数值越大，所得模糊程度越小。
-		mask = gaussian_lowpass(src.rows, src.cols, sigma);
-		testContent = "gaussian_lowpass";
-	}
-	break;
-	case 3:
-	{
-	}
-	break;
-	}
-
-	cv::Mat dst = apply_frequency_filter(src32F, mask);
-	if (dst.depth() != src.depth()) {
-		int type = CV_MAKE_TYPE(src.depth(), dst.channels());
-		dst.convertTo(dst, type);
-	}
-	std::filesystem::path path_src(img_path);
-	std::string out_path = path_src.parent_path().string() + "/" + path_src.stem().string() + "_" + testContent + ".png";
 	businlog_error_return_err_reason(cv::imwrite(out_path, dst), "fail to write image to path:" << out_path, err, -1);
 	businlog_info("success to write image to path:" << out_path);
 	return 0;
