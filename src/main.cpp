@@ -44,7 +44,6 @@ int main(int argc, char* argv[])
 		std::cout << "28¡¢²âÊÔñŞÖå£¨wrinkle£©ÂË²¨Ëã·¨" << std::endl;
 		std::cout << "29¡¢²âÊÔunsharp_maskËã·¨" << std::endl;
 		std::cout << "30¡¢²âÊÔÈ¥ÔëºÍÈñ»¯" << std::endl;
-		std::cout << "31¡¢²âÊÔshiftFFt" << std::endl;
 		std::cout << "ÇëÊäÈëÄúµÄÑ¡Ôñ:";
 		int nChoise = -1;
 		std::cin >> nChoise;
@@ -144,9 +143,6 @@ int main(int argc, char* argv[])
 			break;
 		case 30:
 			ret = test_denoise_and_sharpen(str_err_reason);
-			break;
-		case 31:
-			ret = test_shiftFFt(str_err_reason);
 			break;
 		default:
 			std::cout << "·Ç·¨ÊäÈë" << std::endl;
